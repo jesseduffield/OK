@@ -990,3 +990,65 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 		testFunc(value)
 	}
 }
+
+func TestParsingSwitchStatement(t *testing.T) {
+	input := `switch x < y { case 1 + 5: x; case true: x; y; default: 9 }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.SwitchExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.SwitchExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Subject, "x", "<", "y") {
+		return
+	}
+
+	if len(exp.Cases) != 2 {
+		t.Errorf("exp.Cases does not contain %d cases. got=%d\n",
+			2, len(exp.Cases))
+	}
+
+	if !testInfixExpression(t, exp.Cases[0].Value, 1, "+", 5) {
+		return
+	}
+
+	statement := exp.Cases[0].Block.Statements[0].(*ast.ExpressionStatement)
+	if !testIdentifier(t, statement.Expression, "x") {
+		return
+	}
+
+	if !testBooleanLiteral(t, exp.Cases[1].Value, true) {
+		return
+	}
+
+	statement = exp.Cases[1].Block.Statements[0].(*ast.ExpressionStatement)
+	if !testIdentifier(t, statement.Expression, "x") {
+		return
+	}
+
+	statement = exp.Cases[1].Block.Statements[1].(*ast.ExpressionStatement)
+	if !testIdentifier(t, statement.Expression, "y") {
+		return
+	}
+
+	statement = exp.Default.Statements[0].(*ast.ExpressionStatement)
+	if !testIntegerLiteral(t, statement.Expression, 9) {
+		return
+	}
+}

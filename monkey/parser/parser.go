@@ -65,6 +65,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
+	p.registerPrefix(token.SWITCH, p.parseSwitchExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -342,6 +343,71 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	}
 
 	return expression
+}
+
+func (p *Parser) parseSwitchExpression() ast.Expression {
+	expression := &ast.SwitchExpression{Token: p.curToken}
+
+	p.nextToken()
+
+	expression.Subject = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	p.nextToken()
+
+	expression.Cases = p.parseSwitchCases()
+
+	if p.curTokenIs(token.DEFAULT) {
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+
+		expression.Default = p.parseSwitchBlockStatement()
+	}
+
+	return expression
+}
+
+func (p *Parser) parseSwitchCases() []ast.SwitchCase {
+	cases := []ast.SwitchCase{}
+
+	for p.curTokenIs(token.CASE) {
+		switchCase := ast.SwitchCase{}
+
+		p.nextToken()
+
+		switchCase.Value = p.parseExpression(LOWEST)
+
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+
+		switchCase.Block = p.parseSwitchBlockStatement()
+
+		cases = append(cases, switchCase)
+	}
+
+	return cases
+}
+
+func (p *Parser) parseSwitchBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.curToken}
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) && !p.curTokenIs(token.DEFAULT) && !p.curTokenIs(token.CASE) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return block
 }
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {

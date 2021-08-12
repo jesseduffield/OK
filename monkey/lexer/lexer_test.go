@@ -30,6 +30,14 @@ if (5 < 10) {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+switch true {
+	case true:
+		return true;
+	case false:
+		return false;
+	default:
+		return false;
+}
 `
 
 	tests := []struct {
@@ -121,6 +129,27 @@ if (5 < 10) {
 		{token.STRING, "foo"},
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
+		{token.SWITCH, "switch"},
+		{token.TRUE, "true"},
+		{token.LBRACE, "{"},
+		{token.CASE, "case"},
+		{token.TRUE, "true"},
+		{token.COLON, ":"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.CASE, "case"},
+		{token.FALSE, "false"},
+		{token.COLON, ":"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.DEFAULT, "default"},
+		{token.COLON, ":"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}

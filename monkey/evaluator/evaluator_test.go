@@ -61,6 +61,21 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	return true
 }
 
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object is not String. got=%T (%+v)", obj, obj)
+		return false
+	}
+	if result.Value != expected {
+		t.Errorf("object has wrong value. got=%s, want=%s",
+			result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
 func TestEvalBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -286,7 +301,7 @@ func TestFunctionObject(t *testing.T) {
 		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
 	}
 
-	expectedBody := "(x + 2)"
+	expectedBody := "(x + 2);"
 
 	if fn.Body.String() != expectedBody {
 		t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
@@ -542,6 +557,54 @@ func TestHashIndexExpressions(t *testing.T) {
 		if ok {
 			testIntegerObject(t, evaluated, int64(integer))
 		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+func TestSwitchExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`switch 5 { case 5: 1 }`,
+			1,
+		},
+		{
+			`switch 5 { case 4: 1 }`,
+			nil,
+		},
+		{
+			`switch 5 { case 4: 1; default: 12 }`,
+			12,
+		},
+		{
+			`switch 6 { case 4: 1; case 6: 2; default: 12 }`,
+			2,
+		},
+		{
+			`switch 6 { case 4 + 2: 1; case 6: 2; default: 12 }`,
+			1,
+		},
+		{
+			`switch 1+5 { case 4 + 2: 1; case 6: 2; default: 12 }`,
+			1,
+		},
+		{
+			`switch "a" { case "a": default: "b" }`,
+			"a",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch v := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(v))
+		case string:
+			testStringObject(t, evaluated, v)
+		default:
 			testNullObject(t, evaluated)
 		}
 	}

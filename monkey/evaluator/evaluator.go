@@ -55,6 +55,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 
+	case *ast.SwitchExpression:
+		return evalSwitchExpression(node, env)
+
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
 		if isError(val) {
@@ -296,6 +299,31 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else {
 		return NULL
 	}
+}
+
+func evalSwitchExpression(se *ast.SwitchExpression, env *object.Environment) object.Object {
+	subject := Eval(se.Subject, env)
+	if isError(subject) {
+		return subject
+	}
+
+	for _, c := range se.Cases {
+		value := Eval(c.Value, env)
+		if value.Type() != subject.Type() {
+			return newError("mismatched types in switch statement: %s %s",
+				subject.Type(), value.Type())
+		}
+		test := evalInfixExpression("==", subject, value)
+		if test == TRUE {
+			return Eval(c.Block, env)
+		}
+	}
+
+	if se.Default != nil {
+		return Eval(se.Default, env)
+	}
+
+	return NULL
 }
 
 func isTruthy(obj object.Object) bool {
