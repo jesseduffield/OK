@@ -147,6 +147,8 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case token.STRUCT:
+		return p.parseStruct()
 	case token.LET:
 		return p.parseLetStatement()
 	case token.RETURN:
@@ -451,6 +453,51 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	lit.Body = p.parseBlockStatement()
 
 	return lit
+}
+
+func (p *Parser) parseStruct() *ast.Struct {
+	str := &ast.Struct{Token: p.curToken}
+	str.Methods = map[string]ast.StructMethod{}
+
+	p.nextToken()
+
+	str.Name = p.curToken.Literal
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	if p.peekTokenIs(token.PACK) {
+		p.nextToken()
+		p.nextToken()
+
+		str.PrivacyAcknowledgement = p.parseStringLiteral().String()
+	}
+
+	for p.peekTokenIs(token.FIELD) {
+		p.nextToken()
+		fieldName := p.peekToken.Literal
+		// no public struct fields for now
+		str.Fields = append(str.Fields, ast.StructField{Name: fieldName, Public: false})
+		p.nextToken()
+	}
+
+	for !p.peekTokenIs(token.RBRACE) {
+		isPublic := false
+		if p.peekTokenIs(token.PUBLIC) {
+			p.nextToken()
+			isPublic = true
+		}
+		methodName := p.peekToken.Literal
+		p.nextToken()
+		p.nextToken()
+		fn := p.parseFunctionLiteral().(*ast.FunctionLiteral)
+		str.Methods[methodName] = ast.StructMethod{Public: isPublic, FunctionLiteral: fn}
+	}
+
+	p.nextToken()
+
+	return str
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {

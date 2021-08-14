@@ -254,7 +254,6 @@ func (self *BlockStatement) String() string {
 
 	for _, s := range self.Statements {
 		out.WriteString(s.String())
-		out.WriteString(";")
 	}
 
 	return out.String()
@@ -279,8 +278,75 @@ func (self *FunctionLiteral) String() string {
 	out.WriteString(self.TokenLiteral())
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
-	out.WriteString(") ")
+	out.WriteString(") { ")
 	out.WriteString(self.Body.String())
+	out.WriteString(" }")
+
+	return out.String()
+}
+
+type StructField struct {
+	Name   string
+	Public bool
+}
+
+type StructMethod struct {
+	FunctionLiteral *FunctionLiteral
+	Public          bool
+}
+
+type Struct struct {
+	Token token.Token // The 'struct' token
+	Name  string
+
+	// will be empty if no privacy acknowledgement is set
+	PrivacyAcknowledgement string
+
+	Fields  []StructField
+	Methods map[string]StructMethod
+}
+
+func (self *Struct) statementNode()       {}
+func (self *Struct) TokenLiteral() string { return self.Token.Literal }
+func (self *Struct) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("notAClass ")
+	out.WriteString(self.Name)
+	out.WriteString(" {\n")
+
+	if self.PrivacyAcknowledgement != "" {
+		out.WriteString("\tpack \"")
+		out.WriteString(self.PrivacyAcknowledgement)
+		out.WriteString("\"\n\n")
+	}
+
+	for _, f := range self.Fields {
+		out.WriteString("\t")
+		if f.Public {
+			out.WriteString("public ")
+		}
+		out.WriteString("field ")
+		out.WriteString(f.Name)
+		out.WriteString("\n")
+	}
+
+	if len(self.Fields) > 0 && len(self.Methods) > 0 {
+		out.WriteString("\n")
+	}
+
+	for methodName, method := range self.Methods {
+		out.WriteString("\t")
+		if method.Public {
+			out.WriteString("public ")
+		}
+		out.WriteString(methodName)
+		out.WriteString(" ")
+
+		out.WriteString(method.FunctionLiteral.String())
+		out.WriteString("\n")
+	}
+	out.WriteString("}")
 
 	return out.String()
 }

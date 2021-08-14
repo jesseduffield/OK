@@ -1076,3 +1076,51 @@ func TestParsingSwitchStatement(t *testing.T) {
 		return
 	}
 }
+
+func TestParsingStruct(t *testing.T) {
+	input := `notAClass Person { pack "test" field name field email public foo fn(selfish, a, b) { return 5 } bar fn(selfish) { return 3 } } notAClass Other { field blah }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			2, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.Struct)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.Struct. got=%T",
+			program.Statements[0])
+	}
+
+	str := stmt.String()
+	expected := `notAClass Person {
+	pack "test"
+
+	field name
+	field email
+
+	public foo fn(selfish, a, b) { return 5; }
+	bar fn(selfish) { return 3; }
+}`
+	if str != expected {
+		t.Fatalf("unexpected struct got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+
+	stmt, ok = program.Statements[1].(*ast.Struct)
+	if !ok {
+		t.Fatalf("program.Statements[1] is not ast.Struct. got=%T",
+			program.Statements[1])
+	}
+
+	str = stmt.String()
+	expected = `notAClass Other {
+	field blah
+}`
+	if str != expected {
+		t.Fatalf("unexpected struct got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+}

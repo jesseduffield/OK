@@ -51,19 +51,29 @@ const (
 	SWITCH   = "SWITCH"
 	CASE     = "CASE"
 	DEFAULT  = "DEFAULT"
+
+	// structs
+	STRUCT = "STRUCT"
+	PACK   = "PACK"
+	FIELD  = "FIELD"
+	PUBLIC = "PUBLIC"
 )
 
 var keywords = map[string]TokenType{
-	"fn":      FUNCTION,
-	"let":     LET,
-	"true":    TRUE,
-	"false":   FALSE,
-	"if":      IF,
-	"else":    ELSE,
-	"return":  RETURN,
-	"switch":  SWITCH,
-	"case":    CASE,
-	"default": DEFAULT,
+	"fn":        FUNCTION,
+	"let":       LET,
+	"true":      TRUE,
+	"false":     FALSE,
+	"if":        IF,
+	"else":      ELSE,
+	"return":    RETURN,
+	"switch":    SWITCH,
+	"case":      CASE,
+	"default":   DEFAULT,
+	"notAClass": STRUCT,
+	"pack":      PACK,
+	"field":     FIELD,
+	"public":    PUBLIC,
 }
 
 func LookupIdent(ident string) TokenType {
