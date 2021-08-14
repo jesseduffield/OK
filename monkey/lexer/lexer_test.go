@@ -38,6 +38,8 @@ switch true {
 	default:
 		return false;
 }
+foo && bar
+foo || bar
 `
 
 	tests := []struct {
@@ -151,6 +153,12 @@ switch true {
 		{token.FALSE, "false"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		{token.IDENT, "foo"},
+		{token.AND, "&&"},
+		{token.IDENT, "bar"},
+		{token.IDENT, "foo"},
+		{token.OR, "||"},
+		{token.IDENT, "bar"},
 		{token.EOF, ""},
 	}
 

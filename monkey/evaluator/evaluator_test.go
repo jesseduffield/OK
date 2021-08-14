@@ -104,6 +104,18 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(1 > 2) == false", true},
 		{"\"a\" == \"a\"", true},
 		{"\"a\" != \"b\"", true},
+		{"true && false", false},
+		{"true && true", true},
+		{"false && true", false},
+		{"false && false", false},
+		{"true || false", true},
+		{"true || true", true},
+		{"false || true", true},
+		{"false || false", false},
+		{"false || false || true", true},
+		{"true && true && true", true},
+		{"3 > 2 && 3 < 4", true},
+		{"3 > 4 || 3 < 4", true},
 	}
 
 	for _, tt := range tests {
@@ -592,7 +604,7 @@ func TestSwitchExpressions(t *testing.T) {
 			1,
 		},
 		{
-			`switch "a" { case "a": default: "b" }`,
+			`switch "a" { case "a": "a"; default: "b" }`,
 			"a",
 		},
 	}
