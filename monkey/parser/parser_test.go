@@ -369,6 +369,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"1 || 2 && 3",
 			"((1 || 2) && 3)",
 		},
+		{
+			"x[1][2][3]",
+			"(((x[1])[2])[3])",
+		},
 	}
 
 	for _, tt := range tests {

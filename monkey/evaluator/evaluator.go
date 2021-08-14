@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/object"
 )
@@ -246,12 +247,49 @@ func evalAssignmentExpression(left ast.Expression, right ast.Expression, env *ob
 		return val
 	}
 
-	identifier, ok := left.(*ast.Identifier)
-	if !ok {
-		return object.NewError("LHS must be an identifier")
-	}
+	switch v := left.(type) {
+	case *ast.Identifier:
+		return env.Assign(v.Value, val)
+	case *ast.IndexExpression:
+		// I can just evaluate the left entirely and that will leave me with an object
+		key := Eval(v.Index, env)
+		if isError(key) {
+			return key
+		}
+		leftVal := Eval(v.Left, env)
+		if isError(leftVal) {
+			return leftVal
+		}
 
-	env.Assign(identifier.Value, val)
+		switch l := leftVal.(type) {
+		case *object.Array:
+			indexVal, ok := key.(*object.Integer)
+			if !ok {
+				return object.NewError("Index must be an integer")
+			}
+			if indexVal.Value < 0 {
+				return object.NewError("Index must be positive")
+			}
+			if int(indexVal.Value) > len(l.Elements)-1 {
+				return object.NewError(fmt.Sprintf("Index %d is out of bounds (array length %d)", indexVal.Value, len(l.Elements)))
+			}
+			l.Elements[indexVal.Value] = val
+		case *object.Hash:
+			hashKey, ok := key.(object.Hashable)
+			if !ok {
+				return object.NewError("Unusable as hash key: %s", key.Type())
+			}
+
+			l.Pairs[hashKey.HashKey()] = object.HashPair{Key: key, Value: val}
+		case *object.Null:
+			return object.NewError("Attempted index of NULL object")
+		default:
+			return object.NewError(fmt.Sprintf("`%s` is neither a hash nor array so you cannot index into it", v.Left.String()))
+		}
+
+	default:
+		return object.NewError("LHS must be an identifier or index expression")
+	}
 
 	return val
 }

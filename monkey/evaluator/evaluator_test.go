@@ -41,9 +41,6 @@ func testEval(t *testing.T, input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
-	for _, err := range p.Errors() {
-		t.Errorf(err)
-	}
 	env := object.NewEnvironment()
 
 	return Eval(program, env)
@@ -58,6 +55,21 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	if result.Value != expected {
 		t.Errorf("object has wrong value. got=%d, want=%d",
 			result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
+func testErrorObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.Error)
+	if !ok {
+		t.Errorf("object is not Error. got=%T (%+v)", obj, obj)
+		return false
+	}
+	if result.Message != expected {
+		t.Errorf("object has wrong value. got=%s, want=%s",
+			result.Message, expected)
 		return false
 	}
 
@@ -627,21 +639,78 @@ func TestSwitchExpressions(t *testing.T) {
 
 func TestAssignment(t *testing.T) {
 	tests := []struct {
-		input    string
-		expected interface{}
+		input       string
+		expected    interface{}
+		expectedErr string
 	}{
 		{
 			`let x = 1; x = 2; x`,
 			2,
+			"",
 		},
 		{
 			`let x = 1; x = 2; x = x + 1`,
 			3,
+			"",
+		},
+		{
+			`let x = [1,2]; x[0] = 2; x[0]`,
+			2,
+			"",
+		},
+		{
+			`let x = {"one":1,"two":2}; x["one"] = 2; x["one"]`,
+			2,
+			"",
+		},
+		{
+			`let x = [{"one":1}]; x[0]["one"] = 2; x[0]["one"]`,
+			2,
+			"",
+		},
+		{
+			`let x = [[1],[2]]; x[1][0] = 3; x[1][0]`,
+			3,
+			"",
+		},
+		{
+			`let x = [0]; x[1] = 1;`,
+			nil,
+			"Index 1 is out of bounds (array length 1)",
+		},
+		{
+			`let x = [0]; x[-1] = 1;`,
+			nil,
+			"Index must be positive",
+		},
+		{
+			`let x = [0]; x["1"] = 1;`,
+			nil,
+			"Index must be an integer",
+		},
+		{
+			`let x = {}; x["a"]["b"] = 2`,
+			nil,
+			"Attempted index of NULL object",
+		},
+		{
+			`let foo = fn() { return 1 }; foo()["a"] = 2`,
+			nil,
+			"`foo()` is neither a hash nor array so you cannot index into it",
+		},
+		{
+			`x = 1`,
+			nil,
+			"x has not been declared",
 		},
 	}
 
 	for _, tt := range tests {
 		evaluated := testEval(t, tt.input)
+		if tt.expectedErr != "" {
+			testErrorObject(t, evaluated, tt.expectedErr)
+			continue
+		}
 		switch v := tt.expected.(type) {
 		case int:
 			testIntegerObject(t, evaluated, int64(v))
