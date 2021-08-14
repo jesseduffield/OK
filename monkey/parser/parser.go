@@ -35,6 +35,7 @@ const (
 	PREFIX      // -X or !X
 	CALL        // myFunction(X)
 	INDEX       // array[index]
+	ASSIGN
 )
 
 var precedences = map[token.TokenType]int{
@@ -50,6 +51,7 @@ var precedences = map[token.TokenType]int{
 	token.LBRACKET: INDEX,
 	token.AND:      ANDOR,
 	token.OR:       ANDOR,
+	token.ASSIGN:   ASSIGN,
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -81,6 +83,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.AND, p.parseInfixExpression)
 	p.registerInfix(token.OR, p.parseInfixExpression)
+	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 
