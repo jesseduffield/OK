@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
+	"strings"
 	"testing"
 )
 
@@ -1020,7 +1021,7 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 }
 
 func TestParsingSwitchStatement(t *testing.T) {
-	input := `switch x < y { case 1 + 5: x; case true: x; y; default: 9 }`
+	input := `switch x < y { case 1 + 5: x; case true: x; default: 9 }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1067,11 +1068,6 @@ func TestParsingSwitchStatement(t *testing.T) {
 
 	statement = exp.Cases[1].Block.Statements[0].(*ast.ExpressionStatement)
 	if !testIdentifier(t, statement.Expression, "x") {
-		return
-	}
-
-	statement = exp.Cases[1].Block.Statements[1].(*ast.ExpressionStatement)
-	if !testIdentifier(t, statement.Expression, "y") {
 		return
 	}
 
@@ -1187,4 +1183,19 @@ func TestParsingStructMemberAccess(t *testing.T) {
 	if str != expected {
 		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
 	}
+}
+
+func TestParsingInvalidSwitch(t *testing.T) {
+	input := `switch x { case true: x; y; default: x; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+	expectedError := "switch blocks can only contain a single statement. If you want to include multiple statements, use a function call"
+	for _, err := range p.errors {
+		if err == expectedError {
+			return
+		}
+	}
+	t.Fatalf("expected error:\n%s\nActual errors:\n%s", expectedError, strings.Join(p.errors, "\n"))
 }

@@ -817,6 +817,18 @@ func TestAssignment(t *testing.T) {
 			"cannot divide by zero",
 			"",
 		},
+		{
+			`
+			switch true { case true: 1;2;3; case false: 2;3;4 }`,
+			1,
+			"",
+		},
+		{
+			`
+			switch true { case true: ; case false: 2; }`,
+			nil,
+			"",
+		},
 	}
 
 	for _, tt := range tests {

@@ -395,6 +395,9 @@ func (p *Parser) parseSwitchExpression() ast.Expression {
 	p.nextToken()
 
 	expression.Cases = p.parseSwitchCases()
+	if expression.Cases == nil {
+		return nil
+	}
 
 	if p.curTokenIs(token.DEFAULT) {
 		if !p.expectPeek(token.COLON) {
@@ -402,6 +405,9 @@ func (p *Parser) parseSwitchExpression() ast.Expression {
 		}
 
 		expression.Default = p.parseSwitchBlockStatement()
+		if expression.Default == nil {
+			return nil
+		}
 	}
 
 	return expression
@@ -422,6 +428,9 @@ func (p *Parser) parseSwitchCases() []ast.SwitchCase {
 		}
 
 		switchCase.Block = p.parseSwitchBlockStatement()
+		if switchCase.Block == nil {
+			return nil
+		}
 
 		cases = append(cases, switchCase)
 	}
@@ -435,7 +444,12 @@ func (p *Parser) parseSwitchBlockStatement() *ast.BlockStatement {
 
 	p.nextToken()
 
+	maxAllowedStatements := 1
 	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) && !p.curTokenIs(token.DEFAULT) && !p.curTokenIs(token.CASE) {
+		if len(block.Statements) >= maxAllowedStatements {
+			p.appendError("switch blocks can only contain a single statement. If you want to include multiple statements, use a function call")
+			return nil
+		}
 		stmt := p.parseStatement()
 		if stmt != nil {
 			block.Statements = append(block.Statements, stmt)
