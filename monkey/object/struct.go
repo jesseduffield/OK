@@ -103,6 +103,11 @@ func (self *StructInstance) SetFieldValue(fieldName string, value Object) Object
 	return value
 }
 
+func (self *StructInstance) EvolveInto(other *StructInstance) {
+	self.Struct = other.Struct
+	self.Fields = other.Fields
+}
+
 type Method struct {
 	Name         string
 	StructMethod ast.StructMethod

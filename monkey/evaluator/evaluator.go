@@ -560,6 +560,11 @@ func applyFunction(fn object.Object, args []object.Object, env *object.Environme
 	case *object.Method:
 		newEnv := createMethodEnv(fn, args, env)
 		evaluated := Eval(fn.StructMethod.FunctionLiteral.Body, newEnv)
+
+		if err := handleEvolve(fn.StructInstance, env); err != nil {
+			return err
+		}
+
 		return unwrapReturnValue(evaluated)
 
 	case *object.Builtin:
@@ -568,6 +573,24 @@ func applyFunction(fn object.Object, args []object.Object, env *object.Environme
 	default:
 		return object.NewError("not a function: %s", fn.Type())
 	}
+}
+
+func handleEvolve(instance *object.StructInstance, env *object.Environment) object.Object {
+	if instance.IsMethod("evolve") {
+		evolveMethod := instance.GetMethod("evolve").(*object.Method)
+		newEnv := createMethodEnv(evolveMethod, []object.Object{}, env)
+		other := Eval(evolveMethod.StructMethod.FunctionLiteral.Body, newEnv)
+		other = unwrapReturnValue(other)
+		if other.Type() != object.NULL_OBJ {
+			new, ok := other.(*object.StructInstance)
+			if !ok {
+				return object.NewError("evolve method must return nil or a nac instance, returned %s: %s", other.Type(), other.Inspect())
+			}
+			instance.EvolveInto(new)
+		}
+	}
+
+	return nil
 }
 
 func createMethodEnv(
