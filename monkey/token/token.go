@@ -24,11 +24,9 @@ const (
 	AND      = "&&"
 	OR       = "||"
 
-	LT = "<"
 	GT = ">"
 
-	EQ     = "=="
-	NOT_EQ = "!="
+	EQ = "=="
 
 	// Delimiters
 	COMMA     = ","

@@ -16,16 +16,15 @@ let add = fn(x, y) {
 
 let result = add(five, ten);
 !-/*5;
-5 < 10 > 5;
+5 > 10 > 5;
 
-if (5 < 10) {
+if (5 > 10) {
 	return true;
 } else {
 	return false;
 }
 
 10 == 10;
-10 != 9;
 "foobar"
 "foo bar"
 [1, 2];
@@ -40,6 +39,7 @@ switch true {
 }
 foo && bar
 foo || bar
+10 != 12
 `
 
 	tests := []struct {
@@ -89,7 +89,7 @@ foo || bar
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.INT, "5"},
-		{token.LT, "<"},
+		{token.GT, ">"},
 		{token.INT, "10"},
 		{token.GT, ">"},
 		{token.INT, "5"},
@@ -97,7 +97,7 @@ foo || bar
 		{token.IF, "if"},
 		{token.LPAREN, "("},
 		{token.INT, "5"},
-		{token.LT, "<"},
+		{token.GT, ">"},
 		{token.INT, "10"},
 		{token.RPAREN, ")"},
 		{token.LBRACE, "{"},
@@ -114,10 +114,6 @@ foo || bar
 		{token.INT, "10"},
 		{token.EQ, "=="},
 		{token.INT, "10"},
-		{token.SEMICOLON, ";"},
-		{token.INT, "10"},
-		{token.NOT_EQ, "!="},
-		{token.INT, "9"},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foobar"},
 		{token.STRING, "foo bar"},
@@ -159,6 +155,10 @@ foo || bar
 		{token.IDENT, "foo"},
 		{token.OR, "||"},
 		{token.IDENT, "bar"},
+		{token.INT, "10"},
+		{token.ILLEGAL, "!"},
+		{token.ASSIGN, "="},
+		{token.INT, "12"},
 		{token.EOF, ""},
 	}
 

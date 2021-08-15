@@ -27,28 +27,25 @@ type (
 const (
 	_ int = iota
 	LOWEST
-	ANDOR        // && or ||
-	EQUALS       // ==
-	LESSGREATER  // > or <
-	SUM          // +
-	PRODUCT      // *
-	PREFIX       // -X or !X
-	NEW          // new Person()
-	CALL         // myFunction(X)
-	MEMBERACCESS // myStruct.foo
-	INDEX        // array[index]
+	ANDOR           // && or ||
+	EQUALS          // ==
+	LESSGREATER     // > or <
+	SUM_AND_PRODUCT // *
+	PREFIX          // -X or !X
+	NEW             // new Person()
+	CALL            // myFunction(X)
+	MEMBERACCESS    // myStruct.foo
+	INDEX           // array[index]
 	ASSIGN
 )
 
 var precedences = map[token.TokenType]int{
 	token.EQ:       EQUALS,
-	token.NOT_EQ:   EQUALS,
-	token.LT:       LESSGREATER,
 	token.GT:       LESSGREATER,
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
-	token.SLASH:    PRODUCT,
-	token.ASTERISK: PRODUCT,
+	token.PLUS:     SUM_AND_PRODUCT,
+	token.MINUS:    SUM_AND_PRODUCT,
+	token.SLASH:    SUM_AND_PRODUCT,
+	token.ASTERISK: SUM_AND_PRODUCT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
 	token.AND:      ANDOR,
@@ -83,8 +80,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
-	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
-	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.AND, p.parseInfixExpression)
 	p.registerInfix(token.OR, p.parseInfixExpression)
