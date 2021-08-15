@@ -2,7 +2,8 @@ package object
 
 import (
 	"fmt"
-	"monkey/ast"
+
+	"github.com/jesseduffield/OK/ast"
 )
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {

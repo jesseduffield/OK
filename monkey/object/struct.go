@@ -3,8 +3,9 @@ package object
 import (
 	"bytes"
 	"fmt"
-	"monkey/ast"
 	"strings"
+
+	"github.com/jesseduffield/OK/ast"
 )
 
 type StructInstance struct {

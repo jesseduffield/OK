@@ -3,7 +3,8 @@ package ast
 import (
 	"bytes"
 	"fmt"
-	"monkey/token"
+
+	"github.com/jesseduffield/OK/token"
 )
 
 type StructField struct {

@@ -2,11 +2,12 @@ package parser
 
 import (
 	"fmt"
-	"monkey/ast"
-	"monkey/lexer"
-	"monkey/token"
 	"strconv"
 	"strings"
+
+	"github.com/jesseduffield/OK/ast"
+	"github.com/jesseduffield/OK/lexer"
+	"github.com/jesseduffield/OK/token"
 )
 
 type Parser struct {

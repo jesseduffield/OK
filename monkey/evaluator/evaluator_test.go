@@ -1,10 +1,11 @@
 package evaluator
 
 import (
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
 	"testing"
+
+	"github.com/jesseduffield/OK/lexer"
+	"github.com/jesseduffield/OK/object"
+	"github.com/jesseduffield/OK/parser"
 )
 
 func TestEvalIntegerExpression(t *testing.T) {
@@ -256,7 +257,7 @@ return 1;
 			"unknown operator: STRING - STRING",
 		},
 		{
-			`{"name": "Monkey"}[fn(x) { x }];`,
+			`{"name": "OK"}[fn(x) { x }];`,
 			"unusable as hash key: FUNCTION",
 		},
 	}

@@ -1,8 +1,9 @@
 package ast
 
 import (
-	"monkey/token"
 	"testing"
+
+	"github.com/jesseduffield/OK/token"
 )
 
 func TestString(t *testing.T) {

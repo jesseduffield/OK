@@ -2,8 +2,9 @@ package evaluator
 
 import (
 	"fmt"
-	"monkey/ast"
-	"monkey/object"
+
+	"github.com/jesseduffield/OK/ast"
+	"github.com/jesseduffield/OK/object"
 )
 
 func Eval(node ast.Node, env *object.Environment) object.Object {
