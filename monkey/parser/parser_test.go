@@ -373,6 +373,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"x[1][2][3]",
 			"(((x[1])[2])[3])",
 		},
+		{
+			"nil",
+			"nil",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1077,7 +1081,7 @@ func TestParsingSwitchStatement(t *testing.T) {
 	}
 }
 
-func TestParsingStruct(t *testing.T) {
+func TestParsingStructDefinition(t *testing.T) {
 	input := `notAClass Person { pack "test" field name field email public foo fn(selfish, a, b) { return 5 } bar fn(selfish) { return 3 } } notAClass Other { field blah }`
 
 	l := lexer.New(input)
@@ -1121,6 +1125,66 @@ func TestParsingStruct(t *testing.T) {
 	field blah
 }`
 	if str != expected {
-		t.Fatalf("unexpected struct got=\n%s\nexpected=\n%s\n", str, expected)
+		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+}
+
+func TestParsingInvalidStructDefinition(t *testing.T) {
+	input := `notAClass Person { public field name }`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+	for _, err := range p.errors {
+		if err == "public nac fields are not permitted" {
+			return
+		}
+	}
+	t.Fatalf("expected error about public nac fields not being permitted")
+}
+
+func TestParsingStructInstantiation(t *testing.T) {
+	input := `let x = new Person(a, b);`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	str := program.Statements[0].String()
+	expected := `let x = new Person(a, b);`
+	if str != expected {
+		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+}
+
+func TestParsingStructMemberAccess(t *testing.T) {
+	input := `x.foo; x.bar(a,b);`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			2, len(program.Statements))
+	}
+
+	str := program.Statements[0].String()
+	expected := `x.foo`
+	if str != expected {
+		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+
+	str = program.Statements[1].String()
+	expected = `x.bar(a, b)`
+	if str != expected {
+		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
 	}
 }

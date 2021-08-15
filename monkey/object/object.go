@@ -21,12 +21,21 @@ const (
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARRAY"
 	HASH_OBJ         = "HASH"
+	// TODO: see if this ever gets printed, if so we should call it a `notAClass` or `NAC`
+	STRUCT_OBJ = "STRUCT"
+	METHOD_OBJ = "METHOD"
 )
 
 type Object interface {
 	Type() ObjectType
 	Inspect() string
 }
+
+var (
+	NULL  = &Null{}
+	TRUE  = &Boolean{Value: true}
+	FALSE = &Boolean{Value: false}
+)
 
 type Integer struct {
 	Value int64
@@ -45,7 +54,7 @@ func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }
-func (n *Null) Inspect() string  { return "null" }
+func (n *Null) Inspect() string  { return "nil" }
 
 type ReturnValue struct {
 	Value Object
@@ -169,8 +178,7 @@ func (h *Hash) Inspect() string {
 
 	pairs := []string{}
 	for _, pair := range h.Pairs {
-		pairs = append(pairs, fmt.Sprintf("%s: %s",
-			pair.Key.Inspect(), pair.Value.Inspect()))
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
 	}
 
 	out.WriteString("{")

@@ -27,14 +27,16 @@ type (
 const (
 	_ int = iota
 	LOWEST
-	ANDOR       // && or ||
-	EQUALS      // ==
-	LESSGREATER // > or <
-	SUM         // +
-	PRODUCT     // *
-	PREFIX      // -X or !X
-	CALL        // myFunction(X)
-	INDEX       // array[index]
+	ANDOR        // && or ||
+	EQUALS       // ==
+	LESSGREATER  // > or <
+	SUM          // +
+	PRODUCT      // *
+	PREFIX       // -X or !X
+	NEW          // new Person()
+	CALL         // myFunction(X)
+	MEMBERACCESS // myStruct.foo
+	INDEX        // array[index]
 	ASSIGN
 )
 
@@ -52,6 +54,7 @@ var precedences = map[token.TokenType]int{
 	token.AND:      ANDOR,
 	token.OR:       ANDOR,
 	token.ASSIGN:   ASSIGN,
+	token.PERIOD:   MEMBERACCESS,
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -60,6 +63,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.NULL, p.parseNull)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
@@ -71,6 +75,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 	p.registerPrefix(token.SWITCH, p.parseSwitchExpression)
+	p.registerPrefix(token.NEW, p.parseStructInstantiation)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -86,12 +91,25 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.PERIOD, p.parseMemberAccessExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parseMemberAccessExpression(left ast.Expression) ast.Expression {
+	exp := &ast.StructMemberAccessExpression{Left: left, Token: p.curToken}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	exp.MemberName = p.curToken.Literal
+
+	return exp
 }
 
 func (p *Parser) parseStringLiteral() ast.Expression {
@@ -120,8 +138,12 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
-		t, p.peekToken.Type)
+	p.appendError(
+		fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type),
+	)
+}
+
+func (p *Parser) appendError(msg string) {
 	p.errors = append(p.errors, msg)
 }
 
@@ -269,6 +291,10 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit.Value = value
 
 	return lit
+}
+
+func (p *Parser) parseNull() ast.Expression {
+	return &ast.NullLiteral{Token: p.curToken}
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
@@ -487,10 +513,16 @@ func (p *Parser) parseStruct() *ast.Struct {
 		if p.peekTokenIs(token.PUBLIC) {
 			p.nextToken()
 			isPublic = true
+			if p.peekTokenIs(token.FIELD) {
+				p.appendError("public nac fields are not permitted")
+				return nil
+			}
 		}
+
 		methodName := p.peekToken.Literal
 		p.nextToken()
 		p.nextToken()
+
 		fn := p.parseFunctionLiteral().(*ast.FunctionLiteral)
 		str.Methods[methodName] = ast.StructMethod{Public: isPublic, FunctionLiteral: fn}
 	}
@@ -605,4 +637,23 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	}
 
 	return hash
+}
+
+func (p *Parser) parseStructInstantiation() ast.Expression {
+	// typical line:
+	// new Person(arg1, arg2)
+
+	exp := &ast.StructInstantiation{Token: p.curToken}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	exp.StructName = p.curToken.Literal
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
+
+	return exp
 }

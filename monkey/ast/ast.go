@@ -11,11 +11,6 @@ type Node interface {
 	String() string
 }
 
-type Statement interface {
-	Node
-	statementNode()
-}
-
 type Expression interface {
 	Node
 	expressionNode()
@@ -23,6 +18,11 @@ type Expression interface {
 
 type Program struct {
 	Statements []Statement
+}
+
+type Statement interface {
+	Node
+	statementNode()
 }
 
 func (self *Program) TokenLiteral() string {
@@ -39,30 +39,6 @@ func (self *Program) String() string {
 	for _, s := range self.Statements {
 		out.WriteString(s.String())
 	}
-
-	return out.String()
-}
-
-type LetStatement struct {
-	Token token.Token // the token.LET token
-	Name  *Identifier
-	Value Expression
-}
-
-func (self *LetStatement) statementNode()       {}
-func (self *LetStatement) TokenLiteral() string { return self.Token.Literal }
-func (self *LetStatement) String() string {
-	var out bytes.Buffer
-
-	out.WriteString(self.TokenLiteral() + " ")
-	out.WriteString(self.Name.String())
-	out.WriteString(" = ")
-
-	if self.Value != nil {
-		out.WriteString(self.Value.String())
-	}
-
-	out.WriteString(";")
 
 	return out.String()
 }
@@ -84,6 +60,14 @@ type IntegerLiteral struct {
 func (self *IntegerLiteral) expressionNode()      {}
 func (self *IntegerLiteral) TokenLiteral() string { return self.Token.Literal }
 func (self *IntegerLiteral) String() string       { return self.Token.Literal }
+
+type NullLiteral struct {
+	Token token.Token // the token.NULL token
+}
+
+func (self *NullLiteral) expressionNode()      {}
+func (self *NullLiteral) TokenLiteral() string { return self.Token.Literal }
+func (self *NullLiteral) String() string       { return self.Token.Literal }
 
 type StringLiteral struct {
 	Token token.Token
@@ -132,41 +116,6 @@ func (self *InfixExpression) String() string {
 	out.WriteString(")")
 
 	return out.String()
-}
-
-type ReturnStatement struct {
-	Token       token.Token // the 'return' token
-	ReturnValue Expression
-}
-
-func (self *ReturnStatement) statementNode()       {}
-func (self *ReturnStatement) TokenLiteral() string { return self.Token.Literal }
-func (self *ReturnStatement) String() string {
-	var out bytes.Buffer
-
-	out.WriteString(self.TokenLiteral() + " ")
-
-	if self.ReturnValue != nil {
-		out.WriteString(self.ReturnValue.String())
-	}
-
-	out.WriteString(";")
-
-	return out.String()
-}
-
-type ExpressionStatement struct {
-	Token      token.Token // the first token of the expression
-	Expression Expression
-}
-
-func (self *ExpressionStatement) statementNode()       {}
-func (self *ExpressionStatement) TokenLiteral() string { return self.Token.Literal }
-func (self *ExpressionStatement) String() string {
-	if self.Expression != nil {
-		return self.Expression.String()
-	}
-	return ""
 }
 
 type Boolean struct {
@@ -285,72 +234,6 @@ func (self *FunctionLiteral) String() string {
 	return out.String()
 }
 
-type StructField struct {
-	Name   string
-	Public bool
-}
-
-type StructMethod struct {
-	FunctionLiteral *FunctionLiteral
-	Public          bool
-}
-
-type Struct struct {
-	Token token.Token // The 'struct' token
-	Name  string
-
-	// will be empty if no privacy acknowledgement is set
-	PrivacyAcknowledgement string
-
-	Fields  []StructField
-	Methods map[string]StructMethod
-}
-
-func (self *Struct) statementNode()       {}
-func (self *Struct) TokenLiteral() string { return self.Token.Literal }
-func (self *Struct) String() string {
-	var out bytes.Buffer
-
-	out.WriteString("notAClass ")
-	out.WriteString(self.Name)
-	out.WriteString(" {\n")
-
-	if self.PrivacyAcknowledgement != "" {
-		out.WriteString("\tpack \"")
-		out.WriteString(self.PrivacyAcknowledgement)
-		out.WriteString("\"\n\n")
-	}
-
-	for _, f := range self.Fields {
-		out.WriteString("\t")
-		if f.Public {
-			out.WriteString("public ")
-		}
-		out.WriteString("field ")
-		out.WriteString(f.Name)
-		out.WriteString("\n")
-	}
-
-	if len(self.Fields) > 0 && len(self.Methods) > 0 {
-		out.WriteString("\n")
-	}
-
-	for methodName, method := range self.Methods {
-		out.WriteString("\t")
-		if method.Public {
-			out.WriteString("public ")
-		}
-		out.WriteString(methodName)
-		out.WriteString(" ")
-
-		out.WriteString(method.FunctionLiteral.String())
-		out.WriteString("\n")
-	}
-	out.WriteString("}")
-
-	return out.String()
-}
-
 type CallExpression struct {
 	Token     token.Token // The '(' token
 	Function  Expression  // Identifier or FunctionLiteral
@@ -437,4 +320,63 @@ func (self *HashLiteral) String() string {
 	out.WriteString("}")
 
 	return out.String()
+}
+
+type LetStatement struct {
+	Token token.Token // the token.LET token
+	Name  *Identifier
+	Value Expression
+}
+
+func (self *LetStatement) statementNode()       {}
+func (self *LetStatement) TokenLiteral() string { return self.Token.Literal }
+func (self *LetStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(self.TokenLiteral() + " ")
+	out.WriteString(self.Name.String())
+	out.WriteString(" = ")
+
+	if self.Value != nil {
+		out.WriteString(self.Value.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+type ReturnStatement struct {
+	Token       token.Token // the 'return' token
+	ReturnValue Expression
+}
+
+func (self *ReturnStatement) statementNode()       {}
+func (self *ReturnStatement) TokenLiteral() string { return self.Token.Literal }
+func (self *ReturnStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(self.TokenLiteral() + " ")
+
+	if self.ReturnValue != nil {
+		out.WriteString(self.ReturnValue.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+type ExpressionStatement struct {
+	Token      token.Token // the first token of the expression
+	Expression Expression
+}
+
+func (self *ExpressionStatement) statementNode()       {}
+func (self *ExpressionStatement) TokenLiteral() string { return self.Token.Literal }
+func (self *ExpressionStatement) String() string {
+	if self.Expression != nil {
+		return self.Expression.String()
+	}
+	return ""
 }

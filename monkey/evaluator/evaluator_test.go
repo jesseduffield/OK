@@ -198,7 +198,7 @@ func TestIfElseExpressions(t *testing.T) {
 }
 
 func testNullObject(t *testing.T, obj object.Object) bool {
-	if obj != NULL {
+	if obj != object.NULL {
 		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
 		return false
 	}
@@ -328,7 +328,7 @@ func TestFunctionObject(t *testing.T) {
 		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
 	}
 
-	expectedBody := "(x + 2);"
+	expectedBody := "(x + 2)"
 
 	if fn.Body.String() != expectedBody {
 		t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
@@ -525,8 +525,8 @@ func TestHashLiterals(t *testing.T) {
 		(&object.String{Value: "two"}).HashKey():   2,
 		(&object.String{Value: "three"}).HashKey(): 3,
 		(&object.Integer{Value: 4}).HashKey():      4,
-		TRUE.HashKey():                             5,
-		FALSE.HashKey():                            6,
+		object.TRUE.HashKey():                      5,
+		object.FALSE.HashKey():                     6,
 	}
 
 	if len(result.Pairs) != len(expected) {
@@ -702,6 +702,120 @@ func TestAssignment(t *testing.T) {
 			`x = 1`,
 			nil,
 			"x has not been declared",
+		},
+		{
+			`notAClass Person { public foo fn() { return 5; } };let x = new Person(); x.foo()`,
+			5,
+			"",
+		},
+		{
+			`notAClass Person { field email public getEmail fn(selfish) { return selfish.email } };let x = new Person(); x.getEmail()`,
+			nil,
+			"",
+		},
+		{
+			`
+			notAClass Person {
+				field email
+				public getEmail fn(selfish) { return selfish.email }
+				public setEmail fn(selfish, value) { selfish.email = value }
+			}
+
+			let x = new Person();
+			x.setEmail("test")
+			x.getEmail()`,
+			"test",
+			"",
+		},
+		{
+			`
+			notAClass Person {
+				public add fn(a, b) { return a + b }
+			}
+
+			let x = new Person();
+			x.add(1, 2)`,
+			3,
+			"",
+		},
+		{
+			`
+			notAClass Person {
+				add fn(a, b) { return a + b }
+			}
+
+			let x = new Person();
+			x.add(1, 2)`,
+			nil,
+			"`add` is a private method on nac Person",
+		},
+		{
+			`
+			notAClass Person {
+				field email
+
+				public foo fn(selfish) {
+					selfish.email = "haha"
+					let cl = fn() { return selfish.email }
+					return cl
+				}
+			}
+
+			let x = new Person();
+			let cl = x.foo()
+			cl()`,
+			"haha",
+			"",
+		},
+		{
+			`
+			notAClass Person {
+				field email
+			}
+
+			let x = new Person();
+			x.add(1, 2)`,
+			nil,
+			"undefined field for nac Person: add",
+		},
+		{
+			`
+			notAClass Person {
+				field email
+			}
+
+			let x = new Person();
+			x.email = "test"`,
+			nil,
+			"`email` is a private field on nac Person",
+		},
+		{
+			`
+			notAClass Person {
+				public foo fn() { return 5 }
+			}
+
+			let x = new Person();
+			x.foo = "test"`,
+			nil,
+			"`foo` is a method, not a field, on nac Person. You cannot reassign it",
+		},
+		{
+			`
+			let divide = fn(a, b) {
+				return switch b {
+					case 0: [nil, "cannot divide by zero"];
+					default: [a / b, ""];
+				}
+			};
+			let result = divide(5, 0);
+			let x = switch result[1] {
+				case "": result[0]
+				default: result[1]
+			};
+			x`,
+			"cannot divide by zero",
+			"",
 		},
 	}
 

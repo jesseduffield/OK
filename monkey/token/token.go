@@ -51,12 +51,15 @@ const (
 	SWITCH   = "SWITCH"
 	CASE     = "CASE"
 	DEFAULT  = "DEFAULT"
+	NULL     = "NULL"
 
 	// structs
 	STRUCT = "STRUCT"
 	PACK   = "PACK"
 	FIELD  = "FIELD"
 	PUBLIC = "PUBLIC"
+	NEW    = "NEW"
+	PERIOD = "PERIOD"
 )
 
 var keywords = map[string]TokenType{
@@ -74,6 +77,8 @@ var keywords = map[string]TokenType{
 	"pack":      PACK,
 	"field":     FIELD,
 	"public":    PUBLIC,
+	"new":       NEW,
+	"nil":       NULL,
 }
 
 func LookupIdent(ident string) TokenType {

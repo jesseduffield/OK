@@ -6,12 +6,6 @@ import (
 	"monkey/object"
 )
 
-var (
-	NULL  = &object.Null{}
-	TRUE  = &object.Boolean{Value: true}
-	FALSE = &object.Boolean{Value: false}
-)
-
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 
@@ -94,7 +88,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 
-		return applyFunction(function, args)
+		return applyFunction(function, args, env)
 
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
@@ -119,9 +113,66 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
+
+	case *ast.Struct:
+		return evalStructDefinition(node, env)
+
+	case *ast.StructInstantiation:
+		return evalStructInstantiation(node, env)
+
+	case *ast.StructMemberAccessExpression:
+		return evalStructMemberAccess(node, env)
+
+	case *ast.NullLiteral:
+		return object.NULL
 	}
 
 	return nil
+}
+
+// this is only for when used as an expression
+func evalStructMemberAccess(node *ast.StructMemberAccessExpression, env *object.Environment) object.Object {
+	left := Eval(node.Left, env)
+	structInstance, ok := left.(*object.StructInstance)
+	if !ok {
+		return object.NewError(fmt.Sprintf("`%s` is not a nac", node.Left.String()))
+	}
+
+	if structInstance.IsField(node.MemberName) {
+		if !structInstance.IsPublicField(node.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", node.MemberName, structInstance.Struct.Name))
+		}
+		return structInstance.GetFieldValue(node.MemberName)
+	} else if structInstance.IsMethod(node.MemberName) {
+		if !structInstance.IsPublicMethod(node.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+			return object.NewError(fmt.Sprintf("`%s` is a private method on nac %s", node.MemberName, structInstance.Struct.Name))
+		}
+		return structInstance.GetMethod(node.MemberName)
+	} else {
+		return object.NewError(fmt.Sprintf("undefined field for nac %s: %s", structInstance.Struct.Name, node.MemberName))
+	}
+}
+
+// TODO: support referring to global variables from within a struct
+func evalStructDefinition(structDef *ast.Struct, env *object.Environment) object.Object {
+	env.SetStruct(structDef)
+	return object.NULL
+}
+
+func evalStructInstantiation(node *ast.StructInstantiation, env *object.Environment) object.Object {
+	instance := &object.StructInstance{}
+	instance.Fields = make(map[string]object.Object)
+	// need to find the struct in our env
+	tmp, ok := env.GetStruct(node.StructName)
+	if !ok {
+		return object.NewError(fmt.Sprintf("undefined nac %s", node.StructName))
+	}
+
+	instance.Struct = tmp
+
+	// ignoring fields for now
+
+	return instance
 }
 
 func evalExpressions(
@@ -177,9 +228,9 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	if input {
-		return TRUE
+		return object.TRUE
 	}
-	return FALSE
+	return object.FALSE
 }
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
@@ -195,14 +246,14 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 
 func evalBangOperatorExpression(right object.Object) object.Object {
 	switch right {
-	case TRUE:
-		return FALSE
-	case FALSE:
-		return TRUE
-	case NULL:
-		return TRUE
+	case object.TRUE:
+		return object.FALSE
+	case object.FALSE:
+		return object.TRUE
+	case object.NULL:
+		return object.TRUE
 	default:
-		return FALSE
+		return object.FALSE
 	}
 }
 
@@ -286,6 +337,25 @@ func evalAssignmentExpression(left ast.Expression, right ast.Expression, env *ob
 		default:
 			return object.NewError(fmt.Sprintf("`%s` is neither a hash nor array so you cannot index into it", v.Left.String()))
 		}
+	case *ast.StructMemberAccessExpression:
+		leftVal := Eval(v.Left, env)
+		if isError(leftVal) {
+			return leftVal
+		}
+
+		structInstance, ok := leftVal.(*object.StructInstance)
+		if !ok {
+			return object.NewError(fmt.Sprintf("`%s` is not a nac instance", v.Left.String()))
+		}
+
+		if structInstance.IsMethod(v.MemberName) {
+			return object.NewError(fmt.Sprintf("`%s` is a method, not a field, on nac %s. You cannot reassign it", v.MemberName, structInstance.Struct.Name))
+		}
+		if !structInstance.IsPublicField(v.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", v.MemberName, structInstance.Struct.Name))
+		}
+
+		structInstance.SetFieldValue(v.MemberName, val)
 
 	default:
 		return object.NewError("LHS must be an identifier or index expression")
@@ -358,7 +428,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else if ie.Alternative != nil {
 		return Eval(ie.Alternative, env)
 	} else {
-		return NULL
+		return object.NULL
 	}
 }
 
@@ -375,7 +445,7 @@ func evalSwitchExpression(se *ast.SwitchExpression, env *object.Environment) obj
 				subject.Type(), value.Type())
 		}
 		test := evalInfixExpression("==", subject, value)
-		if test == TRUE {
+		if test == object.TRUE {
 			return Eval(c.Block, env)
 		}
 	}
@@ -384,16 +454,16 @@ func evalSwitchExpression(se *ast.SwitchExpression, env *object.Environment) obj
 		return Eval(se.Default, env)
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func isTruthy(obj object.Object) bool {
 	switch obj {
-	case NULL:
+	case object.NULL:
 		return false
-	case TRUE:
+	case object.TRUE:
 		return true
-	case FALSE:
+	case object.FALSE:
 		return false
 	default:
 		return true
@@ -422,12 +492,17 @@ func evalIdentifier(
 	return object.NewError("identifier not found: " + node.Value)
 }
 
-func applyFunction(fn object.Object, args []object.Object) object.Object {
+func applyFunction(fn object.Object, args []object.Object, env *object.Environment) object.Object {
 	switch fn := fn.(type) {
 
 	case *object.Function:
 		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Method:
+		newEnv := createMethodEnv(fn, args, env)
+		evaluated := Eval(fn.StructMethod.FunctionLiteral.Body, newEnv)
 		return unwrapReturnValue(evaluated)
 
 	case *object.Builtin:
@@ -436,6 +511,32 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	default:
 		return object.NewError("not a function: %s", fn.Type())
 	}
+}
+
+func createMethodEnv(
+	method *object.Method,
+	args []object.Object,
+	env *object.Environment,
+) *object.Environment {
+	newEnv := object.OnlyStructs(env)
+
+	functionLiteral := method.StructMethod.FunctionLiteral
+	// if the first arg is 'selfish' we need to pass in the struct instance for that
+	if len(functionLiteral.Parameters) > 0 && functionLiteral.Parameters[0].Value == "selfish" {
+		newEnv.Set("selfish", method.StructInstance)
+
+		for paramIdx, param := range functionLiteral.Parameters[1:] {
+			newEnv.Set(param.Value, args[paramIdx])
+		}
+	} else {
+		for paramIdx, param := range functionLiteral.Parameters {
+			newEnv.Set(param.Value, args[paramIdx])
+		}
+	}
+
+	newEnv.SetCurrentStructInstance(method.StructInstance)
+
+	return newEnv
 }
 
 func extendFunctionEnv(
@@ -476,7 +577,7 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	max := int64(len(arrayObject.Elements) - 1)
 
 	if idx < 0 || idx > max {
-		return NULL
+		return object.NULL
 	}
 
 	return arrayObject.Elements[idx]
@@ -521,7 +622,7 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
 	if !ok {
-		return NULL
+		return object.NULL
 	}
 
 	return pair.Value
