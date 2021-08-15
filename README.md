@@ -280,7 +280,7 @@ Some example abbreviations:
 
 You may disagree with this idiom, and that's okay, because it's enforced by the compiler. You're welcome.
 
-#### Testimonials
+### Testimonials
 
 Dave says:
 
@@ -297,3 +297,7 @@ Sarah says:
 Jack says:
 
 > If I'm on the _OK?_ subreddit and I see you use the word 'class' when you meant to say 'nac', I'm going to start screaming. And that screaming will not stop until I've found you. By then, you'll be the one screaming.
+
+### How To Get Started
+
+`git clone` the repo and within the `ok` directory run `go run main.go` to bring up the repl and start OKing!
