@@ -32,7 +32,7 @@ func (self *Struct) TokenLiteral() string { return self.Token.Literal }
 func (self *Struct) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("notAClass ")
+	out.WriteString("notaclass ")
 	out.WriteString(self.Name)
 	out.WriteString(" {\n")
 

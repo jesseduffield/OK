@@ -351,6 +351,18 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"nil",
 			"nil",
 		},
+		{
+			"a && b && c",
+			"((a && b) && c)",
+		},
+		{
+			"a && b || c",
+			"((a && b) || c)",
+		},
+		{
+			"a || b || c",
+			"((a || b) || c)",
+		},
 	}
 
 	for _, tt := range tests {
@@ -822,6 +834,7 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.Errorf("parser has %d errors", len(errors))
 	for _, msg := range errors {
 		t.Errorf("parser error: %q", msg)
+		panic("test")
 	}
 	t.FailNow()
 }
@@ -869,7 +882,7 @@ func TestParsingArrayLiterals(t *testing.T) {
 }
 
 func TestParsingIndexExpressions(t *testing.T) {
-	input := "myArray[1 + 1]"
+	input := "myarray[1 + 1]"
 
 	l := lexer.New(input)
 	p := New(l)
@@ -882,7 +895,7 @@ func TestParsingIndexExpressions(t *testing.T) {
 		t.Fatalf("exp not *ast.IndexExpression. got=%T", stmt.Expression)
 	}
 
-	if !testIdentifier(t, indexExp.Left, "myArray") {
+	if !testIdentifier(t, indexExp.Left, "myarray") {
 		return
 	}
 
@@ -1051,7 +1064,7 @@ func TestParsingSwitchStatement(t *testing.T) {
 }
 
 func TestParsingStructDefinition(t *testing.T) {
-	input := `notAClass Person { pack "test" field name field email public foo fn(selfish, a, b) { return 5 } bar fn(selfish) { return 3 } } notAClass Other { field blah }`
+	input := `notaclass person { pack "test" field name field email public foo fn(selfish, a, b) { return 5 } bar fn(selfish) { return 3 } } notaclass other { field blah }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1070,7 +1083,9 @@ func TestParsingStructDefinition(t *testing.T) {
 	}
 
 	str := stmt.String()
-	expected := `notAClass Person {
+	// TODO: this will sometimes fail because our methods are in a hashmap and we're not sorting by anything.
+	// I'm too lazy to fix right now
+	expected := `notaclass person {
 	pack "test"
 
 	field name
@@ -1090,7 +1105,7 @@ func TestParsingStructDefinition(t *testing.T) {
 	}
 
 	str = stmt.String()
-	expected = `notAClass Other {
+	expected = `notaclass other {
 	field blah
 }`
 	if str != expected {
@@ -1099,7 +1114,7 @@ func TestParsingStructDefinition(t *testing.T) {
 }
 
 func TestParsingInvalidStructDefinition(t *testing.T) {
-	input := `notAClass Person { public field name }`
+	input := `notaclass person { public field name }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1113,7 +1128,7 @@ func TestParsingInvalidStructDefinition(t *testing.T) {
 }
 
 func TestParsingStructInstantiation(t *testing.T) {
-	input := `let x = new Person(a, b);`
+	input := `let x = new person(a, b);`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1126,7 +1141,7 @@ func TestParsingStructInstantiation(t *testing.T) {
 	}
 
 	str := program.Statements[0].String()
-	expected := `let x = new Person(a, b);`
+	expected := `let x = new person(a, b);`
 	if str != expected {
 		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
 	}
@@ -1189,6 +1204,30 @@ func TestParsingInvalidExpressions(t *testing.T) {
 		{
 			input:         "a && true",
 			expectedError: "right operand of logical expression must be a variable. Consider storing the right operand in a variable",
+		},
+		{
+			input:         "abcdefghi",
+			expectedError: "Identifier must be at most eight characters long",
+		},
+		{
+			input:         "a_b",
+			expectedError: "Identifier must not contain underscores",
+		},
+		{
+			input:         "abC",
+			expectedError: "Identifier must not contain uppercase characters",
+		},
+		{
+			input:         "let asjdlkajslkdjasdl = 5",
+			expectedError: "Identifier must be at most eight characters long",
+		},
+		{
+			input:         "notaclass me { field abcdefgasdal }",
+			expectedError: "Identifier must be at most eight characters long",
+		},
+		{
+			input:         "notaclass me { abcdefgasdal fn() { return 5 } }",
+			expectedError: "Identifier must be at most eight characters long",
 		},
 	}
 

@@ -6,6 +6,7 @@ import (
 	"monkey/lexer"
 	"monkey/token"
 	"strconv"
+	"strings"
 )
 
 type Parser struct {
@@ -38,6 +39,8 @@ const (
 	INDEX           // array[index]
 	ASSIGN
 )
+
+const MAX_IDENTIFIER_LENGTH = 8
 
 var precedences = map[token.TokenType]int{
 	token.EQ:       EQUALS,
@@ -125,7 +128,30 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
+	if !p.validateIdentifier(p.curToken.Literal) {
+		return nil
+	}
+
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) validateIdentifier(identifier string) bool {
+	if len(identifier) > MAX_IDENTIFIER_LENGTH {
+		p.errors = append(p.errors, "Identifier must be at most eight characters long")
+		return false
+	}
+
+	if strings.ToLower(identifier) != identifier {
+		p.errors = append(p.errors, "Identifier must not contain uppercase characters")
+		return false
+	}
+
+	if strings.Contains(identifier, "_") {
+		p.errors = append(p.errors, "Identifier must not contain underscores")
+		return false
+	}
+
+	return true
 }
 
 func (p *Parser) Errors() []string {
@@ -216,6 +242,9 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
+	if !p.validateIdentifier(p.curToken.Literal) {
+		return nil
+	}
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
 	if !p.expectPeek(token.ASSIGN) {
@@ -335,14 +364,21 @@ func (p *Parser) parseLogicalInfixExpression(left ast.Expression) ast.Expression
 		return nil
 	}
 
-	if _, ok := castExp.Left.(*ast.Identifier); !ok {
-		p.errors = append(p.errors, "left operand of logical expression must be a variable. Consider storing the left operand in a variable")
-		return nil
-	}
-
-	if _, ok := castExp.Right.(*ast.Identifier); !ok {
-		p.errors = append(p.errors, "right operand of logical expression must be a variable. Consider storing the right operand in a variable")
-		return nil
+	for _, operand := range []struct {
+		exp  ast.Expression
+		side string
+	}{{castExp.Left, "left"}, {castExp.Right, "right"}} {
+		switch v := operand.exp.(type) {
+		case *ast.Identifier:
+		case *ast.InfixExpression:
+			if v.Operator != "&&" && v.Operator != "||" {
+				p.errors = append(p.errors, fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing the %s operand in a variable", operand.side, operand.side))
+				return nil
+			}
+		default:
+			p.errors = append(p.errors, fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing the %s operand in a variable", operand.side, operand.side))
+			return nil
+		}
 	}
 
 	return exp
@@ -533,6 +569,9 @@ func (p *Parser) parseStruct() *ast.Struct {
 	for p.peekTokenIs(token.FIELD) {
 		p.nextToken()
 		fieldName := p.peekToken.Literal
+		if !p.validateIdentifier(fieldName) {
+			return nil
+		}
 		// no public struct fields for now
 		str.Fields = append(str.Fields, ast.StructField{Name: fieldName, Public: false})
 		p.nextToken()
@@ -550,6 +589,9 @@ func (p *Parser) parseStruct() *ast.Struct {
 		}
 
 		methodName := p.peekToken.Literal
+		if !p.validateIdentifier(methodName) {
+			return nil
+		}
 		p.nextToken()
 		p.nextToken()
 

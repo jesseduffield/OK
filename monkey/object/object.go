@@ -21,7 +21,7 @@ const (
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARRAY"
 	HASH_OBJ         = "HASH"
-	// TODO: see if this ever gets printed, if so we should call it a `notAClass` or `NAC`
+	// TODO: see if this ever gets printed, if so we should call it a `notaclass` or `NAC`
 	STRUCT_OBJ = "STRUCT"
 	METHOD_OBJ = "METHOD"
 )

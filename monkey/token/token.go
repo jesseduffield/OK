@@ -71,7 +71,7 @@ var keywords = map[string]TokenType{
 	"switch":    SWITCH,
 	"case":      CASE,
 	"default":   DEFAULT,
-	"notAClass": STRUCT,
+	"notaclass": STRUCT,
 	"pack":      PACK,
 	"field":     FIELD,
 	"public":    PUBLIC,

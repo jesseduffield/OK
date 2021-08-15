@@ -110,18 +110,13 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(1 > 2) == true", false},
 		{"(1 > 2) == false", true},
 		{"\"a\" == \"a\"", true},
-		{"true && false", false},
-		{"true && true", true},
-		{"false && true", false},
-		{"false && false", false},
-		{"true || false", true},
-		{"true || true", true},
-		{"false || true", true},
-		{"false || false", false},
-		{"false || false || true", true},
-		{"true && true && true", true},
-		{"3 > 2 && 5 > 4", true},
-		{"3 > 2 || 3 > 1", true},
+		{"let x = true; let y = false; x || y", true},
+		{"let x = true; let y = false; x || x", true},
+		{"let x = true; let y = false; y || x", true},
+		{"let x = true; let y = false; y || y", false},
+		{"let x = false; let y = false; let z = true; x || y || z", true},
+		{"let x = true; let y = true; let z = true; x && y && z", true},
+		{"let x = 3 > 2; let y = 5 > 4; x && y", true},
 	}
 
 	for _, tt := range tests {
@@ -344,11 +339,11 @@ func TestFunctionApplication(t *testing.T) {
 
 func TestClosures(t *testing.T) {
 	input := `
-let newAdder = fn(x) {
+let newadder = fn(x) {
 fn(y) { x + y };
 };
 
-let addTwo = newAdder(2);
+let addTwo = newadder(2);
 addTwo(2);`
 
 	testIntegerObject(t, testEval(t, input), 4)
@@ -460,15 +455,15 @@ func TestArrayIndexExpressions(t *testing.T) {
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[2];",
+			"let myarray = [1, 2, 3]; myarray[2];",
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			"let myarray = [1, 2, 3]; myarray[0] + myarray[1] + myarray[2];",
 			6,
 		},
 		{
-			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			"let myarray = [1, 2, 3]; let i = myarray[0]; myarray[i]",
 			2,
 		},
 		{
@@ -693,54 +688,54 @@ func TestAssignment(t *testing.T) {
 			"x has not been declared",
 		},
 		{
-			`notAClass Person { public foo fn() { return 5; } };let x = new Person(); x.foo()`,
+			`notaclass person { public foo fn() { return 5; } };let x = new person(); x.foo()`,
 			5,
 			"",
 		},
 		{
-			`notAClass Person { field email public getEmail fn(selfish) { return selfish.email } };let x = new Person(); x.getEmail()`,
+			`notaclass person { field email public getemail fn(selfish) { return selfish.email } };let x = new person(); x.getemail()`,
 			nil,
 			"",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				field email
-				public getEmail fn(selfish) { return selfish.email }
-				public setEmail fn(selfish, value) { selfish.email = value }
+				public getemail fn(selfish) { return selfish.email }
+				public setemail fn(selfish, value) { selfish.email = value }
 			}
 
-			let x = new Person();
-			x.setEmail("test")
-			x.getEmail()`,
+			let x = new person();
+			x.setemail("test")
+			x.getemail()`,
 			"test",
 			"",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				public add fn(a, b) { return a + b }
 			}
 
-			let x = new Person();
+			let x = new person();
 			x.add(1, 2)`,
 			3,
 			"",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				add fn(a, b) { return a + b }
 			}
 
-			let x = new Person();
+			let x = new person();
 			x.add(1, 2)`,
 			nil,
-			"`add` is a private method on nac Person",
+			"`add` is a private method on nac person",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				field email
 
 				public foo fn(selfish) {
@@ -750,7 +745,7 @@ func TestAssignment(t *testing.T) {
 				}
 			}
 
-			let x = new Person();
+			let x = new person();
 			let cl = x.foo()
 			cl()`,
 			"haha",
@@ -758,36 +753,36 @@ func TestAssignment(t *testing.T) {
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				field email
 			}
 
-			let x = new Person();
+			let x = new person();
 			x.add(1, 2)`,
 			nil,
-			"undefined field for nac Person: add",
+			"undefined field for nac person: add",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				field email
 			}
 
-			let x = new Person();
+			let x = new person();
 			x.email = "test"`,
 			nil,
-			"`email` is a private field on nac Person",
+			"`email` is a private field on nac person",
 		},
 		{
 			`
-			notAClass Person {
+			notaclass person {
 				public foo fn() { return 5 }
 			}
 
-			let x = new Person();
+			let x = new person();
 			x.foo = "test"`,
 			nil,
-			"`foo` is a method, not a field, on nac Person. You cannot reassign it",
+			"`foo` is a method, not a field, on nac person. You cannot reassign it",
 		},
 		{
 			`
