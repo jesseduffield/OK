@@ -300,7 +300,11 @@ Jack says:
 
 ### How To Get Started
 
-`git clone` the repo and within the `ok` directory run `go run main.go` to bring up the repl and start OKing!
+1. `git clone` the repo.
+2. within the `ok` directory run `go install`.
+3. Run `ok` without any arguments to bring up the REPL, or you can run an _OK?_ file with `ok test.ok`.
+
+Happy OK'ing!
 
 ### Credits
 
