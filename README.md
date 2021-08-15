@@ -3,7 +3,7 @@
 ## Programming Is Simple Again
 
 _OK?_ is a modern, dynamically typed programming language with a vision for the future.
-_OK?_'s mission is to do away with the needless complexity of today's programming languages and let's you focus on what matters: writing code that makes a difference.
+_OK?_'s mission is to do away with the needless complexity of today's programming languages and let you focus on what matters: writing code that makes a difference.
 
 ### Conditionals
 
