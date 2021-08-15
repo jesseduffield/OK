@@ -168,7 +168,7 @@ notaclass person {
 
 Let's deep dive into what makes our nacs special:
 
-#### All fields are private
+#### All Fields Are Private
 
 You don't check how your friend is feeling by prying them open with a crowbar and perusing through their entrails; you just _ask_ them. The same is true in programming. There is no way to mark a field as public in _OK?_ because the public API of a nac should describe _behaviour_, not _state_.
 
