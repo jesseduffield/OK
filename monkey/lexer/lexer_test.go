@@ -40,6 +40,7 @@ switch true {
 foo && bar
 foo || bar
 10 != 12
+lazy 3 > 4
 `
 
 	tests := []struct {
@@ -159,6 +160,10 @@ foo || bar
 		{token.ILLEGAL, "!"},
 		{token.ASSIGN, "="},
 		{token.INT, "12"},
+		{token.LAZY, "lazy"},
+		{token.INT, "3"},
+		{token.GT, ">"},
+		{token.INT, "4"},
 		{token.EOF, ""},
 	}
 

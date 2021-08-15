@@ -50,6 +50,7 @@ const (
 	CASE     = "CASE"
 	DEFAULT  = "DEFAULT"
 	NULL     = "NULL"
+	LAZY     = "LAZY"
 
 	// structs
 	STRUCT = "STRUCT"
@@ -65,6 +66,7 @@ var keywords = map[string]TokenType{
 	"let":       LET,
 	"true":      TRUE,
 	"false":     FALSE,
+	"nil":       NULL,
 	"if":        IF,
 	"else":      ELSE,
 	"return":    RETURN,
@@ -76,7 +78,7 @@ var keywords = map[string]TokenType{
 	"field":     FIELD,
 	"public":    PUBLIC,
 	"new":       NEW,
-	"nil":       NULL,
+	"lazy":      LAZY,
 }
 
 func LookupIdent(ident string) TokenType {

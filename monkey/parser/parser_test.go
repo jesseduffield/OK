@@ -1244,3 +1244,23 @@ outer:
 		t.Fatalf("expected error:\n%s\nActual errors:\n%s", test.expectedError, strings.Join(p.errors, "\n"))
 	}
 }
+
+func TestParsingLazyExpression(t *testing.T) {
+	input := `let x = lazy 3 > 4`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	str := program.Statements[0].String()
+	expected := `let x = ((lazy3) > 4);`
+	if str != expected {
+		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
+	}
+}

@@ -802,9 +802,13 @@ func TestAssignment(t *testing.T) {
 			"",
 		},
 		{
-			`
-			switch true { case true: nil; case false: 2; }`,
+			`switch true { case true: nil; case false: 2; }`,
 			nil,
+			"",
+		},
+		{
+			`let x = lazy 3; x`,
+			3,
 			"",
 		},
 	}

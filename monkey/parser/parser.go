@@ -37,6 +37,7 @@ const (
 	CALL            // myFunction(X)
 	MEMBERACCESS    // myStruct.foo
 	INDEX           // array[index]
+	LAZY            // lazy myFunc()
 	ASSIGN
 )
 
@@ -55,6 +56,7 @@ var precedences = map[token.TokenType]int{
 	token.OR:       ANDOR,
 	token.ASSIGN:   ASSIGN,
 	token.PERIOD:   MEMBERACCESS,
+	token.LAZY:     LAZY,
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -76,6 +78,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 	p.registerPrefix(token.SWITCH, p.parseSwitchExpression)
 	p.registerPrefix(token.NEW, p.parseStructInstantiation)
+	p.registerPrefix(token.LAZY, p.parsePrefixExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
