@@ -206,6 +206,8 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"foobar == barfoo;", "foobar", "==", "barfoo"},
 		{"true == true", true, "==", true},
 		{"false == false", false, "==", false},
+		{"a && b", "a", "&&", "b"},
+		{"a || b", "a", "||", "b"},
 	}
 
 	for _, tt := range infixTests {
@@ -340,26 +342,6 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"add(a * b[2], b[1], 2 * [1, 2][1])",
 			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
-		},
-		{
-			"1 + 1 && 3 - 1",
-			"((1 + 1) && (3 - 1))",
-		},
-		{
-			"foo() && 12",
-			"(foo() && 12)",
-		},
-		{
-			"1 + 2 == 3 && 3 - 1 == 2",
-			"(((1 + 2) == 3) && ((3 - 1) == 2))",
-		},
-		{
-			"1 + 2 == 3 || 3 - 1 == 2",
-			"(((1 + 2) == 3) || ((3 - 1) == 2))",
-		},
-		{
-			"1 || 2 && 3",
-			"((1 || 2) && 3)",
 		},
 		{
 			"x[1][2][3]",
@@ -1189,4 +1171,37 @@ func TestParsingInvalidSwitch(t *testing.T) {
 		}
 	}
 	t.Fatalf("expected error:\n%s\nActual errors:\n%s", expectedError, strings.Join(p.errors, "\n"))
+}
+
+func TestParsingInvalidExpressions(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedError string
+	}{
+		{
+			input:         "a && b()",
+			expectedError: "right operand of logical expression must be a variable. Consider storing the right operand in a variable",
+		},
+		{
+			input:         "a() && b",
+			expectedError: "left operand of logical expression must be a variable. Consider storing the left operand in a variable",
+		},
+		{
+			input:         "a && true",
+			expectedError: "right operand of logical expression must be a variable. Consider storing the right operand in a variable",
+		},
+	}
+
+outer:
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		p.ParseProgram()
+		for _, err := range p.errors {
+			if err == test.expectedError {
+				continue outer
+			}
+		}
+		t.Fatalf("expected error:\n%s\nActual errors:\n%s", test.expectedError, strings.Join(p.errors, "\n"))
+	}
 }

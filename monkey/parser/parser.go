@@ -81,8 +81,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
-	p.registerInfix(token.AND, p.parseInfixExpression)
-	p.registerInfix(token.OR, p.parseInfixExpression)
+	p.registerInfix(token.AND, p.parseLogicalInfixExpression)
+	p.registerInfix(token.OR, p.parseLogicalInfixExpression)
 	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
@@ -325,6 +325,27 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+// this is for the '&&' and '||' operators
+func (p *Parser) parseLogicalInfixExpression(left ast.Expression) ast.Expression {
+	exp := p.parseInfixExpression(left)
+	castExp, ok := exp.(*ast.InfixExpression)
+	if !ok {
+		return nil
+	}
+
+	if _, ok := castExp.Left.(*ast.Identifier); !ok {
+		p.errors = append(p.errors, "left operand of logical expression must be a variable. Consider storing the left operand in a variable")
+		return nil
+	}
+
+	if _, ok := castExp.Right.(*ast.Identifier); !ok {
+		p.errors = append(p.errors, "right operand of logical expression must be a variable. Consider storing the right operand in a variable")
+		return nil
+	}
+
+	return exp
 }
 
 func (p *Parser) parseBoolean() ast.Expression {
