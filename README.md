@@ -145,7 +145,7 @@ With this feature you get the best of both worlds: clean, readable code, without
 
 ### Dead-simple Operator Precedence
 
-in _OK?_, `5 + 2 * 3` evaluates to 21, not 30, because addition and multiplication have equal operator precedence. If you want to evaluate your expression in some other order, you simply need to use parentheses: `5 + (2 * 3)`.
+in _OK?_, `5 + 2 * 3` evaluates to 21, not 11, because addition and multiplication have equal operator precedence. If you want to evaluate your expression in some other order, you simply need to use parentheses: `5 + (2 * 3)`.
 
 This simple left-to-right default spares you from scrounging around the internet looking for an operator precedence table, and lets you keep your eyes on the code.
 
