@@ -363,6 +363,26 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"a || b || c",
 			"((a || b) || c)",
 		},
+		{
+			"x = 5 + 5",
+			"(x = (5 + 5))",
+		},
+		{
+			"x = lazy 5 + 5",
+			"(x = lazy((5 + 5)))",
+		},
+		{
+			"x = x + 1",
+			"(x = (x + 1))",
+		},
+		{
+			"fn() { r = r + 1 }();",
+			"fn() { (r = (r + 1)) }()",
+		},
+		{
+			"x() || y()",
+			"fn() { (r = (r + 1)) }()",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1259,7 +1279,7 @@ func TestParsingLazyExpression(t *testing.T) {
 	}
 
 	str := program.Statements[0].String()
-	expected := `let x = ((lazy3) > 4);`
+	expected := `let x = lazy((3 > 4));`
 	if str != expected {
 		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
 	}

@@ -24,6 +24,7 @@ const (
 	// TODO: see if this ever gets printed, if so we should call it a `notaclass` or `NAC`
 	STRUCT_OBJ = "STRUCT"
 	METHOD_OBJ = "METHOD"
+	LAZY_OBJ   = "LAZY"
 )
 
 type Object interface {
@@ -190,4 +191,13 @@ func (h *Hash) Inspect() string {
 
 func NewError(format string, a ...interface{}) *Error {
 	return &Error{Message: fmt.Sprintf(format, a...)}
+}
+
+type LazyObject struct {
+	Right ast.Node
+}
+
+func (self *LazyObject) Type() ObjectType { return LAZY_OBJ }
+func (self *LazyObject) Inspect() string {
+	return fmt.Sprintf("lazy %s", self.Right.String())
 }

@@ -380,3 +380,20 @@ func (self *ExpressionStatement) String() string {
 	}
 	return ""
 }
+
+type LazyExpression struct {
+	Token token.Token // The prefix token, i.e. 'lazy'
+	Right Expression
+}
+
+func (pe *LazyExpression) expressionNode()      {}
+func (pe *LazyExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *LazyExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("lazy(")
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}

@@ -24,15 +24,44 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return nativeBoolToBooleanObject(node.Value)
 
 	case *ast.PrefixExpression:
-		right := Eval(node.Right, env)
-		if isError(right) {
-			return right
-		}
-		return evalPrefixExpression(node.Operator, right)
+		return evalPrefixExpression(node.Operator, node.Right, env)
 
 	case *ast.InfixExpression:
-		if node.Operator == "=" {
+		switch node.Operator {
+		case "=":
 			return evalAssignmentExpression(node.Left, node.Right, env)
+		case "&&":
+			left := Eval(node.Left, env)
+			if isError(left) {
+				return left
+			}
+
+			if !isTruthy(left) {
+				return nativeBoolToBooleanObject(false)
+			}
+
+			right := Eval(node.Right, env)
+			if isError(right) {
+				return right
+			}
+
+			return nativeBoolToBooleanObject(isTruthy(right))
+		case "||":
+			left := Eval(node.Left, env)
+			if isError(left) {
+				return left
+			}
+
+			if isTruthy(left) {
+				return nativeBoolToBooleanObject(true)
+			}
+
+			right := Eval(node.Right, env)
+			if isError(right) {
+				return right
+			}
+
+			return nativeBoolToBooleanObject(isTruthy(right))
 		}
 
 		left := Eval(node.Left, env)
@@ -125,9 +154,25 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.NullLiteral:
 		return object.NULL
+
+	case *ast.LazyExpression:
+		return evalLazyExpression(node)
+
+	case nil:
+		// TODO: I'm not actually sure why this would ever be nil. Might need to investigate
+		return object.NULL
+
+	default:
+		return object.NewError("Unknown expression type: %T", node)
 	}
 
 	return nil
+}
+
+func evalLazyExpression(node *ast.LazyExpression) object.Object {
+	return &object.LazyObject{
+		Right: node.Right,
+	}
 }
 
 // this is only for when used as an expression
@@ -233,14 +278,24 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return object.FALSE
 }
 
-func evalPrefixExpression(operator string, right object.Object) object.Object {
+func evalPrefixExpression(operator string, rightNode ast.Node, env *object.Environment) object.Object {
 	switch operator {
 	case "!":
+		right := Eval(rightNode, env)
+		if isError(right) {
+			return right
+		}
 		return evalBangOperatorExpression(right)
 	case "-":
+		right := Eval(rightNode, env)
+		if isError(right) {
+			return right
+		}
 		return evalMinusPrefixOperatorExpression(right)
+	case "lazy":
+		return &object.LazyObject{Right: rightNode}
 	default:
-		return object.NewError("unknown operator: %s%s", operator, right.Type())
+		return object.NewError("unknown operator: %s for %s", operator, rightNode.String())
 	}
 }
 
@@ -271,10 +326,6 @@ func evalInfixExpression(
 	left, right object.Object,
 ) object.Object {
 	switch {
-	case operator == "&&":
-		return nativeBoolToBooleanObject(isTruthy(left) && isTruthy(right))
-	case operator == "||":
-		return nativeBoolToBooleanObject(isTruthy(left) || isTruthy(right))
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
@@ -482,6 +533,12 @@ func evalIdentifier(
 	env *object.Environment,
 ) object.Object {
 	if val, ok := env.Get(node.Value); ok {
+		if lazyObj, ok := val.(*object.LazyObject); ok {
+			unwrappedVal := Eval(lazyObj.Right, env)
+			env.Assign(node.Value, unwrappedVal)
+			return unwrappedVal
+		}
+
 		return val
 	}
 

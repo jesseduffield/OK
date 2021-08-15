@@ -1,6 +1,9 @@
 package object
 
-import "monkey/ast"
+import (
+	"fmt"
+	"monkey/ast"
+)
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {
 	env := NewEnvironment()
@@ -80,4 +83,26 @@ func (e *Environment) SetCurrentStructInstance(structInstance *StructInstance) {
 
 func (e *Environment) IsCurrentStructInstance(structInstance *StructInstance) bool {
 	return e.currentStructInstance == structInstance || (e.outer != nil && e.outer.IsCurrentStructInstance(structInstance))
+}
+
+func (e *Environment) String() string {
+	result := ""
+	result += "Variables:\n"
+	for name, obj := range e.variableStore {
+		if obj == nil {
+			result += fmt.Sprintf("%s: nil\n", name)
+		} else {
+			result += name + ": " + obj.Inspect() + "\n"
+		}
+	}
+	result += "Structs:\n"
+	for name, obj := range e.structStore {
+		result += name + ": " + obj.String() + "\n"
+	}
+	if e.outer != nil {
+		result += "Outer:\n"
+		result += e.outer.String()
+	}
+
+	return result
 }

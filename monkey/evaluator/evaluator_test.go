@@ -343,8 +343,8 @@ let newadder = fn(x) {
 fn(y) { x + y };
 };
 
-let addTwo = newadder(2);
-addTwo(2);`
+let addtwo = newadder(2);
+addtwo(2);`
 
 	testIntegerObject(t, testEval(t, input), 4)
 }
@@ -809,6 +809,42 @@ func TestAssignment(t *testing.T) {
 		{
 			`let x = lazy 3; x`,
 			3,
+			"",
+		},
+		{
+			`let x = lazy 3; x`,
+			3,
+			"",
+		},
+		{
+			`
+			let r = 0;
+			let x = fn() { r = r + 1; return true };
+			let y = fn() { r = r + 2; return true };
+			let lx = lazy x();
+			let ly = lazy y();
+			lx || ly;
+			r;
+			`,
+			1,
+			"",
+		},
+		{
+			`
+			let r = 0;
+			fn() { r = r + 1 }();
+			r;
+			`,
+			1,
+			"",
+		},
+		{
+			`
+			let r = 0;
+			r = 5 + 5;
+			r;
+			`,
+			10,
 			"",
 		},
 	}

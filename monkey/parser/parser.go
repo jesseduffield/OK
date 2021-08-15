@@ -28,6 +28,8 @@ type (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN
+	LAZY            // lazy myFunc()
 	ANDOR           // && or ||
 	EQUALS          // ==
 	LESSGREATER     // > or <
@@ -37,8 +39,6 @@ const (
 	CALL            // myFunction(X)
 	MEMBERACCESS    // myStruct.foo
 	INDEX           // array[index]
-	LAZY            // lazy myFunc()
-	ASSIGN
 )
 
 const MAX_IDENTIFIER_LENGTH = 8
@@ -78,7 +78,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 	p.registerPrefix(token.SWITCH, p.parseSwitchExpression)
 	p.registerPrefix(token.NEW, p.parseStructInstantiation)
-	p.registerPrefix(token.LAZY, p.parsePrefixExpression)
+	p.registerPrefix(token.LAZY, p.parseLazyExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -126,6 +126,18 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.nextToken()
 
 	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
+}
+
+func (p *Parser) parseLazyExpression() ast.Expression {
+	expression := &ast.LazyExpression{
+		Token: p.curToken,
+	}
+
+	p.nextToken()
+
+	expression.Right = p.parseExpression(LAZY)
 
 	return expression
 }
