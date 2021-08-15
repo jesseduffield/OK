@@ -1,5 +1,3 @@
-# _OK?_
-
 ## Programming Is Simple Again
 
 _OK?_ is a modern, dynamically typed programming language.
@@ -170,7 +168,7 @@ Let's deep dive into what makes our nacs special:
 
 #### All fields are private
 
-You don't see how your friend is feeling by prying them open with a crowbar and perusing through their entrails; you just _ask_ them. The same is true in programming. There is no way to mark a field as public in _OK?_ because the public API of a nac should describe _behaviour_, not _state_.
+You don't check how your friend is feeling by prying them open with a crowbar and perusing through their entrails; you just _ask_ them. The same is true in programming. There is no way to mark a field as public in _OK?_ because the public API of a nac should describe _behaviour_, not _state_.
 
 ```go
 let p = new person()
@@ -222,7 +220,7 @@ You may be familiar with the phrase 'Composition Over Inheritance'. That was cut
 
 It's time we take the next logical step: _Evolution Over Composition_. Instead of thinking in terms of _is-a_ or a _has-a_ relationships, think in terms of _becomes-a_ relationships. How does this work?
 
-To enable evolution, you simply need to define an `evolve` method in your nac. The `evolve` method is called after every other method call on the nac, and it determines if the preconditions have been met to evolve the nac instance into a new nac type.
+To enable evolution, you simply need to define an `evolve` method in your nac. The `evolve` method is invoked after any other of the nac's methods are executed, and it determines if the preconditions have been met to evolve the nac instance into a new nac type.
 
 ```go
 notaclass brgousie {
