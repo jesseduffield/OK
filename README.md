@@ -260,7 +260,7 @@ let p = new person();
 p.init("John", "")
 puts(p.whoami()); // prints "John"
 p.makeold(); // evolve() method is called behind the scenes
-puts(p.whoami()); // prints "a good-for-nothing aristocrat"
+puts(p.whoami()); // prints "a good-for-nothing aristocrat who likes classes"
 ```
 
 This simple yet powerful feature enables a vast array of possibilities, without the frustration evoked by its predecessors.
