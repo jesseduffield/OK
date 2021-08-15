@@ -301,3 +301,7 @@ Jack says:
 ### How To Get Started
 
 `git clone` the repo and within the `ok` directory run `go run main.go` to bring up the repl and start OKing!
+
+### Credits
+
+Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
