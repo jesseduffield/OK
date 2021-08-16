@@ -776,6 +776,68 @@ func TestAssignment(t *testing.T) {
 		},
 		{
 			`
+			let x = NO!;
+			ayok?(x);
+			`,
+			false,
+			"",
+		},
+		{
+			`
+			let x = 10;
+			ayok?(x);
+			`,
+			true,
+			"",
+		},
+		{
+			`
+			NO! == NO!
+			`,
+			true,
+			"",
+		},
+		{
+			`
+			NO! == 10
+			`,
+			false,
+			"",
+		},
+		{
+			`
+			notaclass person {
+				pack "this is bad"
+
+				field email
+			}
+
+			let x = new person();
+
+			// I acknowledge that this is bad
+			x.email = "test";
+			x.email;`,
+			"test",
+			"",
+		},
+		{
+			`
+			notaclass person {
+				pack "this is bad"
+
+				field email
+			}
+
+			let x = new person();
+
+			// I do not acknowledge that this is bad
+			x.email = "test";
+			x.email;`,
+			nil,
+			"`email` is a private field on nac person",
+		},
+		{
+			`
 			notaclass person {
 				public foo fn() { return 5 }
 			}
@@ -891,36 +953,6 @@ func TestAssignment(t *testing.T) {
 			p.whoami();
 			`,
 			"a good-for-nothing aristocrat who likes classes",
-			"",
-		},
-		{
-			`
-			let x = NO!;
-			ayok?(x);
-			`,
-			false,
-			"",
-		},
-		{
-			`
-			let x = 10;
-			ayok?(x);
-			`,
-			true,
-			"",
-		},
-		{
-			`
-			NO! == NO!
-			`,
-			true,
-			"",
-		},
-		{
-			`
-			NO! == 10
-			`,
-			false,
 			"",
 		},
 	}

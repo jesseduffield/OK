@@ -42,6 +42,9 @@ foo || bar
 10 != 12
 lazy 3 > 4
 NO!
+test // this is my comment
+testb
+// this is my other comment
 `
 
 	tests := []struct {
@@ -166,6 +169,10 @@ NO!
 		{token.GT, ">"},
 		{token.INT, "4"},
 		{token.NULL, "NO!"},
+		{token.IDENT, "test"},
+		{token.COMMENT, "// this is my comment"},
+		{token.IDENT, "testb"},
+		{token.COMMENT, "// this is my other comment"},
 		{token.EOF, ""},
 	}
 

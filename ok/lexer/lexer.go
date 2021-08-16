@@ -20,7 +20,7 @@ func New(input string) *Lexer {
 
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
-		l.ch = 0
+		l.ch = eofByte()
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
@@ -71,7 +71,13 @@ func (l *Lexer) NextToken() token.Token {
 			tok = newToken(token.ILLEGAL, l.ch)
 		}
 	case '/':
-		tok = newToken(token.SLASH, l.ch)
+		if l.peekChar() == '/' {
+			tok.Literal = l.readComment()
+			tok.Type = token.COMMENT
+			return tok
+		} else {
+			tok = newToken(token.SLASH, l.ch)
+		}
 	case '*':
 		tok = newToken(token.ASTERISK, l.ch)
 	case '>':
@@ -94,7 +100,7 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.RBRACKET, l.ch)
 	case ':':
 		tok = newToken(token.COLON, l.ch)
-	case 0:
+	case eofByte():
 		tok.Literal = ""
 		tok.Type = token.EOF
 	case '"':
@@ -128,7 +134,7 @@ func (l *Lexer) readString() string {
 	position := l.position + 1
 	for {
 		l.readChar()
-		if l.ch == '"' || l.ch == 0 {
+		if l.ch == '"' || l.ch == eofByte() {
 			break
 		}
 	}
@@ -147,6 +153,18 @@ func isValidIdentifierChar(ch byte) bool {
 	// the bang is here for the sake of the 'NO!' token,
 	// and the ? is here for the sake of the 'ayok?' builtin function
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '!' || ch == '?'
+}
+
+func eofByte() byte {
+	return 0
+}
+
+func (l *Lexer) readComment() string {
+	position := l.position
+	for l.ch != '\n' && l.ch != eofByte() {
+		l.readChar()
+	}
+	return l.input[position:l.position]
 }
 
 func (l *Lexer) skipWhitespace() {
@@ -169,7 +187,7 @@ func isDigit(ch byte) bool {
 
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
-		return 0
+		return eofByte()
 	} else {
 		return l.input[l.readPosition]
 	}

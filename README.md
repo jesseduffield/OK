@@ -39,7 +39,7 @@ switch x {
     z = z + 2
   case false:
     x + x = 1;
-    y = y - 1; // ERROR: switch blocks can only contain a single statement
+    y = y - 1; // <-- ERROR: switch blocks can only contain a single statement
 }
 
 // VALID:
@@ -194,8 +194,7 @@ You don't check how your friend is feeling by prying them open with a crowbar an
 
 ```go
 let p = new person()
-p.name = "Jesse"
-// ^ ERROR: access of private field 'name'
+p.name = "Jesse" // <-- ERROR: access of private field 'name'
 ```
 
 For extenuating circumstances, you can define a _privacy acknowledgement_ with the `pack` keyword, allowing external code to access a nac's fields if they include the acknowledgement in a comment, preceded by 'I acknowledge that':
@@ -209,8 +208,9 @@ notaclass person {
 }
 
 let p = new person()
-p.name = "Jesse" // I acknowledge that I am a stupid piece of shit who should not be doing this
-// ^ no error
+// I acknowledge that I am a stupid piece of shit who should not be doing this
+p.name = "Jesse"  // <-- No error
+
 ```
 
 This makes it easy to find privacy violations with `CTRL+F` and lets you communicate your tolerance level explicitly.

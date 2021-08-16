@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/OK/ast"
 	"github.com/jesseduffield/OK/object"
@@ -159,6 +160,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.LazyExpression:
 		return evalLazyExpression(node)
 
+	case *ast.CommentStatement:
+		return evalCommentStatement(node, env)
+
 	case nil:
 		// TODO: I'm not actually sure why this would ever be nil. Might need to investigate
 		return object.NULL
@@ -168,6 +172,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	}
 
 	return nil
+}
+
+func evalCommentStatement(node *ast.CommentStatement, env *object.Environment) object.Object {
+	acknowledgePrefix := "I acknowledge that "
+	if strings.HasPrefix(node.Text, acknowledgePrefix) {
+		text := strings.TrimPrefix(node.Text, acknowledgePrefix)
+		env.AddAcknowledgement(text)
+	}
+
+	return object.NULL
 }
 
 func evalLazyExpression(node *ast.LazyExpression) object.Object {
@@ -185,12 +199,12 @@ func evalStructMemberAccess(node *ast.StructMemberAccessExpression, env *object.
 	}
 
 	if structInstance.IsField(node.MemberName) {
-		if !structInstance.IsPublicField(node.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+		if !structInstance.IsPublicField(node.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
 			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", node.MemberName, structInstance.Struct.Name))
 		}
 		return structInstance.GetFieldValue(node.MemberName)
 	} else if structInstance.IsMethod(node.MemberName) {
-		if !structInstance.IsPublicMethod(node.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+		if !structInstance.IsPublicMethod(node.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
 			return object.NewError(fmt.Sprintf("`%s` is a private method on nac %s", node.MemberName, structInstance.Struct.Name))
 		}
 		return structInstance.GetMethod(node.MemberName)
@@ -403,7 +417,7 @@ func evalAssignmentExpression(left ast.Expression, right ast.Expression, env *ob
 		if structInstance.IsMethod(v.MemberName) {
 			return object.NewError(fmt.Sprintf("`%s` is a method, not a field, on nac %s. You cannot reassign it", v.MemberName, structInstance.Struct.Name))
 		}
-		if !structInstance.IsPublicField(v.MemberName) && !env.IsCurrentStructInstance(structInstance) {
+		if !structInstance.IsPublicField(v.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
 			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", v.MemberName, structInstance.Struct.Name))
 		}
 
