@@ -23,8 +23,7 @@ const (
 	SLASH    = "/"
 	AND      = "&&"
 	OR       = "||"
-	GT       = ">"
-	EQ       = "=="
+	GTEQ     = ">="
 
 	COMMENT = "//"
 

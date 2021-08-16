@@ -345,10 +345,13 @@ func evalInfixExpression(
 		return evalIntegerInfixExpression(operator, left, right)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
-	case operator == "==":
+	case operator == ">=":
+		// for bools, nil, structs, hashes, and arrays, >= is true if and only if
+		// == is true
 		return nativeBoolToBooleanObject(left == right)
-	case operator == "!=":
-		return nativeBoolToBooleanObject(left != right)
+	case operator == "==":
+		// this is allowed internally but illegal in the lexer
+		return nativeBoolToBooleanObject(left == right)
 	case left.Type() != right.Type():
 		return object.NewError("type mismatch: %s %s %s",
 			left.Type(), operator, right.Type())
@@ -439,14 +442,15 @@ func evalStringInfixExpression(
 		leftVal := left.(*object.String).Value
 		rightVal := right.(*object.String).Value
 		return &object.String{Value: leftVal + rightVal}
+	case ">=":
+		leftVal := left.(*object.String).Value
+		rightVal := right.(*object.String).Value
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
 	case "==":
 		leftVal := left.(*object.String).Value
 		rightVal := right.(*object.String).Value
+		// this is allowed internally but illegal in the lexer
 		return nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
-		leftVal := left.(*object.String).Value
-		rightVal := right.(*object.String).Value
-		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
@@ -469,14 +473,11 @@ func evalIntegerInfixExpression(
 		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
 		return &object.Integer{Value: leftVal / rightVal}
-	case "<":
-		return nativeBoolToBooleanObject(leftVal < rightVal)
-	case ">":
-		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case ">=":
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
 	case "==":
+		// this is allowed internally but illegal in the lexer
 		return nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
-		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())

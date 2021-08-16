@@ -16,15 +16,15 @@ let add = fn(x, y) {
 
 let result = add(five, ten);
 !-/*5;
-5 > 10 > 5;
+5 >= 10 >= 5;
 
-if (5 > 10) {
+if (5 >= 10) {
 	return true;
 } else {
 	return false;
 }
 
-10 == 10;
+10 >= 10;
 "foobar"
 "foo bar"
 [1, 2];
@@ -40,7 +40,7 @@ switch true {
 foo && bar
 foo || bar
 10 != 12
-lazy 3 > 4
+lazy 3 >= 4
 NO!
 test // this is my comment
 testb
@@ -94,15 +94,15 @@ testb
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.INT, "5"},
-		{token.GT, ">"},
+		{token.GTEQ, ">="},
 		{token.INT, "10"},
-		{token.GT, ">"},
+		{token.GTEQ, ">="},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.IF, "if"},
 		{token.LPAREN, "("},
 		{token.INT, "5"},
-		{token.GT, ">"},
+		{token.GTEQ, ">="},
 		{token.INT, "10"},
 		{token.RPAREN, ")"},
 		{token.LBRACE, "{"},
@@ -117,7 +117,7 @@ testb
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.INT, "10"},
-		{token.EQ, "=="},
+		{token.GTEQ, ">="},
 		{token.INT, "10"},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foobar"},
@@ -166,7 +166,7 @@ testb
 		{token.INT, "12"},
 		{token.LAZY, "lazy"},
 		{token.INT, "3"},
-		{token.GT, ">"},
+		{token.GTEQ, ">="},
 		{token.INT, "4"},
 		{token.NULL, "NO!"},
 		{token.IDENT, "test"},
