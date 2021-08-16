@@ -56,6 +56,26 @@ switch x {
 
 This ensures separation of concerns: the specific per-case logic is factored away, bringing the cases themselves to the forefront.
 
+### Nulls Are Not OK
+
+Null values, famously dubbed the [billion dollar mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/). I want my money back Tony Hoare.
+
+Implicit nullability is a thorn in the side of every self-respecting developer and that's why in _OK?_, null values are _NOT_ OK, _OK?_
+
+We could have omitted null values from _OK?_, but then you might forget how bad they are, so we've included them, represented not as `nil` or `null` but as `NO!`, which is the only sensible answer to the question _Are nulls OK?_
+
+To drive the point home, we've also added a builtin function named `ayok?` which takes a value and returns whether that value is OK.
+
+```go
+let x = NO!
+puts(ayok?(x)) // prints 'false'
+
+let y = 10
+puts(ayok?(y)) // prints 'true'
+```
+
+Now when your colleagues ask whether nulls are OK, you'll know exactly what to say.
+
 ### Error Handling
 
 In _OK?_, errors are simply values, just like any other value. One value they're particularly similar to is strings, and that's because by convention, they actually are strings. For example:
@@ -63,7 +83,7 @@ In _OK?_, errors are simply values, just like any other value. One value they're
 ```go
 let divide = fn(a, b) {
   return switch b {
-    case 0: [nil, "cannot divide by zero"];
+    case 0: [NO!, "cannot divide by zero"];
     default: [a / b, ""];
   };
 };
@@ -251,7 +271,7 @@ notaclass person {
       case true:
         return new brgousie();
       default:
-        return nil;
+        return NO!;
     }
   }
 }

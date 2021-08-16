@@ -585,7 +585,7 @@ func handleEvolve(instance *object.StructInstance, env *object.Environment) obje
 		if other.Type() != object.NULL_OBJ {
 			new, ok := other.(*object.StructInstance)
 			if !ok {
-				return object.NewError("evolve method must return nil or a nac instance, returned %s: %s", other.Type(), other.Inspect())
+				return object.NewError("evolve method must return NO! or a nac instance, returned %s: %s", other.Type(), other.Inspect())
 			}
 			instance.EvolveInto(new)
 		}

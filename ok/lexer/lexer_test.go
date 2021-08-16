@@ -41,6 +41,7 @@ foo && bar
 foo || bar
 10 != 12
 lazy 3 > 4
+NO!
 `
 
 	tests := []struct {
@@ -164,6 +165,7 @@ lazy 3 > 4
 		{token.INT, "3"},
 		{token.GT, ">"},
 		{token.INT, "4"},
+		{token.NULL, "NO!"},
 		{token.EOF, ""},
 	}
 
