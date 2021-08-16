@@ -330,5 +330,5 @@ Happy OK'ing!
 
 ### Credits
 
-Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
-Thanks to @markbergin77 for the idea about nulls not being OK
+* Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
+* Thanks to @markbergin77 for the idea about nulls not being OK
