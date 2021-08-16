@@ -49,7 +49,7 @@ const (
 	SWITCH   = "SWITCH"
 	CASE     = "CASE"
 	DEFAULT  = "DEFAULT"
-	NULL     = "NULL"
+	NULL     = "NO!"
 	LAZY     = "LAZY"
 
 	// structs
@@ -66,7 +66,7 @@ var keywords = map[string]TokenType{
 	"let":       LET,
 	"true":      TRUE,
 	"false":     FALSE,
-	"nil":       NULL,
+	"NO!":       NULL,
 	"if":        IF,
 	"else":      ELSE,
 	"return":    RETURN,

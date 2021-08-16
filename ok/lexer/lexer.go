@@ -1,7 +1,9 @@
 // lexer/lexer.go
 package lexer
 
-import "github.com/jesseduffield/OK/token"
+import (
+	"github.com/jesseduffield/OK/token"
+)
 
 type Lexer struct {
 	input        string
@@ -101,7 +103,7 @@ func (l *Lexer) NextToken() token.Token {
 	case '.':
 		tok = newToken(token.PERIOD, l.ch)
 	default:
-		if isLetter(l.ch) {
+		if isValidIdentifierChar(l.ch) {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
@@ -135,14 +137,16 @@ func (l *Lexer) readString() string {
 
 func (l *Lexer) readIdentifier() string {
 	position := l.position
-	for isLetter(l.ch) {
+	for isValidIdentifierChar(l.ch) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
 }
 
-func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+func isValidIdentifierChar(ch byte) bool {
+	// the bang is here for the sake of the 'NO!' token,
+	// and the ? is here for the sake of the 'ayok?' builtin function
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '!' || ch == '?'
 }
 
 func (l *Lexer) skipWhitespace() {

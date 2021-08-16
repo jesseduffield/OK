@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/OK/ast"
+	"github.com/jesseduffield/OK/token"
 )
 
 type ObjectType string
@@ -56,7 +57,7 @@ func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }
-func (n *Null) Inspect() string  { return "nil" }
+func (n *Null) Inspect() string  { return token.NULL }
 
 type ReturnValue struct {
 	Value Object

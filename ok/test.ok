@@ -28,7 +28,7 @@ notaclass person {
       case true:
         return new brgousie();
       default:
-        return nil;
+        return NO!;
     }
   }
 }

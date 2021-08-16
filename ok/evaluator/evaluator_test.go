@@ -789,7 +789,7 @@ func TestAssignment(t *testing.T) {
 			`
 			let divide = fn(a, b) {
 				return switch b {
-					case 0: [nil, "cannot divide by zero"];
+					case 0: [NO!, "cannot divide by zero"];
 					default: [a / b, ""];
 				}
 			};
@@ -803,7 +803,7 @@ func TestAssignment(t *testing.T) {
 			"",
 		},
 		{
-			`switch true { case true: nil; case false: 2; }`,
+			`switch true { case true: NO!; case false: 2; }`,
 			nil,
 			"",
 		},
@@ -880,7 +880,7 @@ func TestAssignment(t *testing.T) {
 						case true:
 							return new brgousie()
 						default:
-							return nil
+							return NO!
 					}
 				}
 			};
@@ -891,6 +891,36 @@ func TestAssignment(t *testing.T) {
 			p.whoami();
 			`,
 			"a good-for-nothing aristocrat who likes classes",
+			"",
+		},
+		{
+			`
+			let x = NO!;
+			ayok?(x);
+			`,
+			false,
+			"",
+		},
+		{
+			`
+			let x = 10;
+			ayok?(x);
+			`,
+			true,
+			"",
+		},
+		{
+			`
+			NO! == NO!
+			`,
+			true,
+			"",
+		},
+		{
+			`
+			NO! == 10
+			`,
+			false,
 			"",
 		},
 	}
@@ -906,6 +936,8 @@ func TestAssignment(t *testing.T) {
 			testIntegerObject(t, evaluated, int64(v))
 		case string:
 			testStringObject(t, evaluated, v)
+		case bool:
+			testBooleanObject(t, evaluated, v)
 		default:
 			testNullObject(t, evaluated)
 		}

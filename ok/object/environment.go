@@ -91,7 +91,7 @@ func (e *Environment) String() string {
 	result += "Variables:\n"
 	for name, obj := range e.variableStore {
 		if obj == nil {
-			result += fmt.Sprintf("%s: nil\n", name)
+			result += fmt.Sprintf("%s: NO!\n", name)
 		} else {
 			result += name + ": " + obj.Inspect() + "\n"
 		}

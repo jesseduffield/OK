@@ -64,7 +64,7 @@ var builtins = map[string]*object.Builtin{
 			return object.NULL
 		},
 	},
-	"rest": &object.Builtin{
+	"rest": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
 				return object.NewError("wrong number of arguments. got=%d, want=1",
@@ -114,6 +114,11 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			return object.NULL
+		},
+	},
+	"ayok?": {
+		Fn: func(args ...object.Object) object.Object {
+			return nativeBoolToBooleanObject(args[0] != object.NULL)
 		},
 	},
 }
