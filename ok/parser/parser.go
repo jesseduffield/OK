@@ -26,39 +26,7 @@ type (
 	infixParseFn  func(ast.Expression) ast.Expression
 )
 
-const (
-	_ int = iota
-	LOWEST
-	ASSIGN
-	LAZY            // lazy myFunc()
-	ANDOR           // && or ||
-	EQUALS          // ==
-	LESSGREATER     // > or <
-	SUM_AND_PRODUCT // *
-	PREFIX          // -X or !X
-	NEW             // new Person()
-	CALL            // myFunction(X)
-	MEMBERACCESS    // myStruct.foo
-	INDEX           // array[index]
-)
-
 const MAX_IDENTIFIER_LENGTH = 8
-
-var precedences = map[token.TokenType]int{
-	token.EQ:       EQUALS,
-	token.GT:       LESSGREATER,
-	token.PLUS:     SUM_AND_PRODUCT,
-	token.MINUS:    SUM_AND_PRODUCT,
-	token.SLASH:    SUM_AND_PRODUCT,
-	token.ASTERISK: SUM_AND_PRODUCT,
-	token.LPAREN:   CALL,
-	token.LBRACKET: INDEX,
-	token.AND:      ANDOR,
-	token.OR:       ANDOR,
-	token.ASSIGN:   ASSIGN,
-	token.PERIOD:   MEMBERACCESS,
-	token.LAZY:     LAZY,
-}
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
@@ -212,6 +180,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.COMMENT:
+		return p.parseCommentStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -222,7 +192,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 	stmt.Expression = p.parseExpression(LOWEST)
 
-	if p.peekTokenIs(token.SEMICOLON) {
+	if p.peekSemiColon() {
 		p.nextToken()
 	}
 
@@ -237,7 +207,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 	leftExp := prefix()
 
-	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+	for !p.peekSemiColon() && precedence < p.peekPrecedence() {
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
 			return leftExp
@@ -249,6 +219,10 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 
 	return leftExp
+}
+
+func (p *Parser) peekSemiColon() bool {
+	return p.peekTokenIs(token.SEMICOLON)
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
@@ -271,7 +245,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	stmt.Value = p.parseExpression(LOWEST)
 
-	if p.peekTokenIs(token.SEMICOLON) {
+	if p.peekSemiColon() {
 		p.nextToken()
 	}
 
@@ -285,7 +259,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	stmt.ReturnValue = p.parseExpression(LOWEST)
 
-	if p.peekTokenIs(token.SEMICOLON) {
+	if p.peekSemiColon() {
 		p.nextToken()
 	}
 
@@ -370,6 +344,18 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+func (p *Parser) parseCommentStatement() *ast.CommentStatement {
+	// TODO: handle when the two slashes aren't followed by a space
+	text := strings.TrimPrefix(p.curToken.Literal, "// ")
+
+	stmt := &ast.CommentStatement{
+		Token: p.curToken,
+		Text:  text,
+	}
+
+	return stmt
 }
 
 // this is for the '&&' and '||' operators
@@ -513,14 +499,18 @@ func (p *Parser) parseSwitchBlockStatement() *ast.BlockStatement {
 	p.nextToken()
 
 	maxAllowedStatements := 1
+	statementCount := 0
 	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) && !p.curTokenIs(token.DEFAULT) && !p.curTokenIs(token.CASE) {
-		if len(block.Statements) >= maxAllowedStatements {
+		if statementCount >= maxAllowedStatements {
 			p.appendError("switch blocks can only contain a single statement. If you want to include multiple statements, use a function call")
 			return nil
 		}
 		stmt := p.parseStatement()
 		if stmt != nil {
 			block.Statements = append(block.Statements, stmt)
+			if _, ok := stmt.(*ast.CommentStatement); !ok {
+				statementCount += 1
+			}
 		}
 		p.nextToken()
 	}

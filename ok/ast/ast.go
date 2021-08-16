@@ -387,14 +387,30 @@ type LazyExpression struct {
 	Right Expression
 }
 
-func (pe *LazyExpression) expressionNode()      {}
-func (pe *LazyExpression) TokenLiteral() string { return pe.Token.Literal }
-func (pe *LazyExpression) String() string {
+func (self *LazyExpression) expressionNode()      {}
+func (self *LazyExpression) TokenLiteral() string { return self.Token.Literal }
+func (self *LazyExpression) String() string {
 	var out bytes.Buffer
 
 	out.WriteString("lazy(")
-	out.WriteString(pe.Right.String())
+	out.WriteString(self.Right.String())
 	out.WriteString(")")
+
+	return out.String()
+}
+
+type CommentStatement struct {
+	Token token.Token
+	Text  string
+}
+
+func (self *CommentStatement) statementNode()       {}
+func (self *CommentStatement) TokenLiteral() string { return self.Token.Literal }
+func (self *CommentStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("// ")
+	out.WriteString(self.Text)
 
 	return out.String()
 }

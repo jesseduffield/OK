@@ -6,6 +6,14 @@ import (
 	"github.com/jesseduffield/OK/ast"
 )
 
+type Environment struct {
+	variableStore         map[string]Object
+	structStore           map[string]*ast.Struct
+	outer                 *Environment
+	currentStructInstance *StructInstance
+	acknowledgements      map[string]bool
+}
+
 func NewEnclosedEnvironment(outer *Environment) *Environment {
 	env := NewEnvironment()
 	env.outer = outer
@@ -15,7 +23,14 @@ func NewEnclosedEnvironment(outer *Environment) *Environment {
 func NewEnvironment() *Environment {
 	s := make(map[string]Object)
 	vs := make(map[string]*ast.Struct)
-	return &Environment{variableStore: s, structStore: vs, outer: nil}
+	acknowledgements := make(map[string]bool)
+
+	return &Environment{
+		variableStore:    s,
+		structStore:      vs,
+		outer:            nil,
+		acknowledgements: acknowledgements,
+	}
 }
 
 // Hack for now that allows us to access all the defined structs without accessing any variables.
@@ -26,13 +41,6 @@ func OnlyStructs(env *Environment) *Environment {
 	}
 	s := make(map[string]Object)
 	return &Environment{variableStore: s, structStore: env.structStore, outer: OnlyStructs(env.outer)}
-}
-
-type Environment struct {
-	variableStore         map[string]Object
-	structStore           map[string]*ast.Struct
-	outer                 *Environment
-	currentStructInstance *StructInstance
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
@@ -106,4 +114,12 @@ func (e *Environment) String() string {
 	}
 
 	return result
+}
+
+func (e *Environment) AddAcknowledgement(ack string) {
+	e.acknowledgements[ack] = true
+}
+
+func (e *Environment) AllowsPrivateAccess(str *ast.Struct) bool {
+	return e.acknowledgements[str.PrivacyAcknowledgement]
 }

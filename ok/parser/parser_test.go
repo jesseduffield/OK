@@ -821,6 +821,21 @@ func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 	return true
 }
 
+func testComment(t *testing.T, exp ast.Statement, value string) bool {
+	comment, ok := exp.(*ast.CommentStatement)
+	if !ok {
+		t.Errorf("exp not *ast.CommentStatement. got=%T", exp)
+		return false
+	}
+
+	if comment.Text != value {
+		t.Errorf("comment text not %s. got=%s", value, comment.Text)
+		return false
+	}
+
+	return true
+}
+
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	bo, ok := exp.(*ast.Boolean)
 	if !ok {
@@ -851,7 +866,6 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.Errorf("parser has %d errors", len(errors))
 	for _, msg := range errors {
 		t.Errorf("parser error: %q", msg)
-		panic("test")
 	}
 	t.FailNow()
 }
@@ -1080,6 +1094,78 @@ func TestParsingSwitchStatement(t *testing.T) {
 	}
 }
 
+func TestParsingSwitchStatementWithComment(t *testing.T) {
+	input := `
+		switch x > y {
+			case 1 + 5:
+				// comment
+				x;
+			case true:
+				x;
+			default:
+				9
+		}
+	`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.SwitchExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.SwitchExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Subject, "x", ">", "y") {
+		return
+	}
+
+	if len(exp.Cases) != 2 {
+		t.Errorf("exp.Cases does not contain %d cases. got=%d\n",
+			2, len(exp.Cases))
+	}
+
+	if !testInfixExpression(t, exp.Cases[0].Value, 1, "+", 5) {
+		return
+	}
+
+	statement := exp.Cases[0].Block.Statements[0]
+	if !testComment(t, statement, "comment") {
+		return
+	}
+
+	expStatement := exp.Cases[0].Block.Statements[1].(*ast.ExpressionStatement)
+	if !testIdentifier(t, expStatement.Expression, "x") {
+		return
+	}
+
+	if !testBooleanLiteral(t, exp.Cases[1].Value, true) {
+		return
+	}
+
+	expStatement = exp.Cases[1].Block.Statements[0].(*ast.ExpressionStatement)
+	if !testIdentifier(t, expStatement.Expression, "x") {
+		return
+	}
+
+	expStatement = exp.Default.Statements[0].(*ast.ExpressionStatement)
+	if !testIntegerLiteral(t, expStatement.Expression, 9) {
+		return
+	}
+}
+
 func TestParsingStructDefinition(t *testing.T) {
 	input := `notaclass person { pack "test" field name field email public foo fn(selfish, a, b) { return 5 } bar fn(selfish) { return 3 } } notaclass other { field blah }`
 
@@ -1100,7 +1186,7 @@ func TestParsingStructDefinition(t *testing.T) {
 	}
 
 	str := stmt.String()
-	// TODO: this will sometimes fail because our methods are in a hashmap and we're not sorting by anything.
+	// our methods are in a hashmap and we're not sorting by anything.
 	// I'm too lazy to fix right now
 	expected := `notaclass person {
 	pack "test"
@@ -1111,7 +1197,16 @@ func TestParsingStructDefinition(t *testing.T) {
 	public foo fn(selfish, a, b) { return 5; }
 	bar fn(selfish) { return 3; }
 }`
-	if str != expected {
+	alternativeExpected := `notaclass person {
+	pack "test"
+
+	field name
+	field email
+
+	bar fn(selfish) { return 3; }
+	public foo fn(selfish, a, b) { return 5; }
+}`
+	if str != expected && str != alternativeExpected {
 		t.Fatalf("unexpected struct got=\n%s\nexpected=\n%s\n", str, expected)
 	}
 
@@ -1152,16 +1247,9 @@ func TestParsingStructInstantiation(t *testing.T) {
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
-			1, len(program.Statements))
-	}
-
-	str := program.Statements[0].String()
-	expected := `let x = new person(a, b);`
-	if str != expected {
-		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
-	}
+	expectStatements(t, program.Statements, []string{
+		`let x = new person(a, b);`,
+	})
 }
 
 func TestParsingStructMemberAccess(t *testing.T) {
@@ -1172,22 +1260,10 @@ func TestParsingStructMemberAccess(t *testing.T) {
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 
-	if len(program.Statements) != 2 {
-		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
-			2, len(program.Statements))
-	}
-
-	str := program.Statements[0].String()
-	expected := `x.foo`
-	if str != expected {
-		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
-	}
-
-	str = program.Statements[1].String()
-	expected = `x.bar(a, b)`
-	if str != expected {
-		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
-	}
+	expectStatements(t, program.Statements, []string{
+		`x.foo`,
+		`x.bar(a, b)`,
+	})
 }
 
 func TestParsingInvalidSwitch(t *testing.T) {
@@ -1270,14 +1346,46 @@ func TestParsingLazyExpression(t *testing.T) {
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
-			1, len(program.Statements))
+	expectStatements(t, program.Statements, []string{
+		`let x = lazy((3 > 4));`,
+	})
+}
+
+func TestParsingCommentExpression(t *testing.T) {
+	input := `let x = 3; // comment 1
+	let y = 4;
+	// comment 2
+	let z = 4;`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	expectStatements(t, program.Statements, []string{
+		`let x = 3;`,
+		`// comment 1`,
+		`let y = 4;`,
+		`// comment 2`,
+		`let z = 4;`,
+	})
+}
+
+func expectStatements(t *testing.T, statements []ast.Statement, expected []string) {
+	statementStrings := []string{}
+	for _, statement := range statements {
+		statementStrings = append(statementStrings, statement.String())
 	}
 
-	str := program.Statements[0].String()
-	expected := `let x = lazy((3 > 4));`
-	if str != expected {
-		t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n", str, expected)
+	if len(statements) != len(expected) {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d:\n%s",
+			len(expected), len(statements), strings.Join(statementStrings, "\n"))
+	}
+
+	for i, str := range expected {
+		if statements[i].String() != str {
+			t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n",
+				statements[i].String(), expected[i])
+		}
 	}
 }
