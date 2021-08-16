@@ -380,10 +380,6 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"fn() { r = r + 1 }();",
 			"fn() { (r = (r + 1)) }()",
 		},
-		{
-			"x() || y()",
-			"fn() { (r = (r + 1)) }()",
-		},
 	}
 
 	for _, tt := range tests {
