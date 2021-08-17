@@ -119,6 +119,8 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"let x = false; let y = false; let z = true; x || y || z", true},
 		{"let x = true; let y = true; let z = true; x && y && z", true},
 		{"let x = 3 >= 2; let y = 5 >= 4; x && y", true},
+		{"switch 1 { case 2: true; default: false }", false},
+		{"switch 1 { case 2: false; default: true }", true},
 	}
 
 	for _, tt := range tests {
