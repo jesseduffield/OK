@@ -197,16 +197,13 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 - 5;", 5, "-", 5},
 		{"5 * 5;", 5, "*", 5},
 		{"5 / 5;", 5, "/", 5},
-		{"5 > 5;", 5, ">", 5},
-		{"5 == 5;", 5, "==", 5},
+		{"5 >= 5;", 5, ">=", 5},
 		{"foobar + barfoo;", "foobar", "+", "barfoo"},
 		{"foobar - barfoo;", "foobar", "-", "barfoo"},
 		{"foobar * barfoo;", "foobar", "*", "barfoo"},
 		{"foobar / barfoo;", "foobar", "/", "barfoo"},
-		{"foobar > barfoo;", "foobar", ">", "barfoo"},
-		{"foobar == barfoo;", "foobar", "==", "barfoo"},
-		{"true == true", true, "==", true},
-		{"false == false", false, "==", false},
+		{"foobar >= barfoo;", "foobar", ">=", "barfoo"},
+		{"true >= true", true, ">=", true},
 		{"a && b", "a", "&&", "b"},
 		{"a || b", "a", "||", "b"},
 	}
@@ -277,28 +274,12 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"(3 + 4)((-5) * 5)",
 		},
 		{
-			"5 > 4 == 3 > 4",
-			"((5 > 4) == (3 > 4))",
-		},
-		{
-			"3 + 4 * 5 == 3 * 1 + 4 * 5",
-			"(((3 + 4) * 5) == (((3 * 1) + 4) * 5))",
-		},
-		{
 			"true",
 			"true",
 		},
 		{
 			"false",
 			"false",
-		},
-		{
-			"3 > 5 == false",
-			"((3 > 5) == false)",
-		},
-		{
-			"3 > 5 == true",
-			"((3 > 5) == true)",
 		},
 		{
 			"1 + (2 + 3) + 4",
@@ -319,10 +300,6 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"-(5 + 5)",
 			"(-(5 + 5))",
-		},
-		{
-			"!(true == true)",
-			"(!(true == true))",
 		},
 		{
 			"a + add(b * c) + d",
@@ -433,7 +410,7 @@ func TestBooleanExpression(t *testing.T) {
 }
 
 func TestIfExpression(t *testing.T) {
-	input := `if (x > y) { x }`
+	input := `if (x >= y) { x }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -457,7 +434,7 @@ func TestIfExpression(t *testing.T) {
 			stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Condition, "x", ">", "y") {
+	if !testInfixExpression(t, exp.Condition, "x", ">=", "y") {
 		return
 	}
 
@@ -482,7 +459,7 @@ func TestIfExpression(t *testing.T) {
 }
 
 func TestIfElseExpression(t *testing.T) {
-	input := `if (x > y) { x } else { y }`
+	input := `if (x >= y) { x } else { y }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -505,7 +482,7 @@ func TestIfElseExpression(t *testing.T) {
 		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Condition, "x", ">", "y") {
+	if !testInfixExpression(t, exp.Condition, "x", ">=", "y") {
 		return
 	}
 
@@ -1038,7 +1015,7 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 }
 
 func TestParsingSwitchStatement(t *testing.T) {
-	input := `switch x > y { case 1 + 5: x; case true: x; default: 9 }`
+	input := `switch x >= y { case 1 + 5: x; case true: x; default: 9 }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1061,7 +1038,7 @@ func TestParsingSwitchStatement(t *testing.T) {
 		t.Fatalf("stmt.Expression is not ast.SwitchExpression. got=%T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Subject, "x", ">", "y") {
+	if !testInfixExpression(t, exp.Subject, "x", ">=", "y") {
 		return
 	}
 
@@ -1096,7 +1073,7 @@ func TestParsingSwitchStatement(t *testing.T) {
 
 func TestParsingSwitchStatementWithComment(t *testing.T) {
 	input := `
-		switch x > y {
+		switch x >= y {
 			case 1 + 5:
 				// comment
 				x;
@@ -1128,7 +1105,7 @@ func TestParsingSwitchStatementWithComment(t *testing.T) {
 		t.Fatalf("stmt.Expression is not ast.SwitchExpression. got=%T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Subject, "x", ">", "y") {
+	if !testInfixExpression(t, exp.Subject, "x", ">=", "y") {
 		return
 	}
 
@@ -1339,7 +1316,7 @@ outer:
 }
 
 func TestParsingLazyExpression(t *testing.T) {
-	input := `let x = lazy 3 > 4`
+	input := `let x = lazy 3 >= 4`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -1347,7 +1324,7 @@ func TestParsingLazyExpression(t *testing.T) {
 	checkParserErrors(t, p)
 
 	expectStatements(t, program.Statements, []string{
-		`let x = lazy((3 > 4));`,
+		`let x = lazy((3 >= 4));`,
 	})
 }
 

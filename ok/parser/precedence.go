@@ -8,8 +8,7 @@ const (
 	ASSIGN
 	LAZY            // lazy myFunc()
 	ANDOR           // && or ||
-	EQUALS          // ==
-	LESSGREATER     // > or <
+	COMPARISON      // >=
 	SUM_AND_PRODUCT // *
 	PREFIX          // -X or !X
 	NEW             // new Person()
@@ -20,8 +19,7 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ:       EQUALS,
-	token.GT:       LESSGREATER,
+	token.GTEQ:     COMPARISON,
 	token.PLUS:     SUM_AND_PRODUCT,
 	token.MINUS:    SUM_AND_PRODUCT,
 	token.SLASH:    SUM_AND_PRODUCT,

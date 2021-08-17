@@ -101,23 +101,24 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"false", false},
 		{"true", true},
 		{"false", false},
-		{"1 > 2", false},
-		{"1 > 1", false},
-		{"1 == 1", true},
-		{"1 == 2", false},
-		{"true == true", true},
-		{"false == false", true},
-		{"true == false", false},
-		{"(1 > 2) == true", false},
-		{"(1 > 2) == false", true},
-		{"\"a\" == \"a\"", true},
+		{"1 >= 2", false},
+		{"2 >= 1", true},
+		{"NO! >= NO!", true},
+		{"true >= true", true},
+		{"false >= false", true},
+		{"true >= false", false},
+		{"(1 >= 2) >= true", false},
+		{"(1 >= 2) >= false", true},
+		{"\"a\" >= \"a\"", true},
+		{"\"a\" >= \"b\"", false},
+		{"\"b\" >= \"a\"", true},
 		{"let x = true; let y = false; x || y", true},
 		{"let x = true; let y = false; x || x", true},
 		{"let x = true; let y = false; y || x", true},
 		{"let x = true; let y = false; y || y", false},
 		{"let x = false; let y = false; let z = true; x || y || z", true},
 		{"let x = true; let y = true; let z = true; x && y && z", true},
-		{"let x = 3 > 2; let y = 5 > 4; x && y", true},
+		{"let x = 3 >= 2; let y = 5 >= 4; x && y", true},
 	}
 
 	for _, tt := range tests {
@@ -167,8 +168,8 @@ func TestIfElseExpressions(t *testing.T) {
 		{"if (true) { 10 }", 10},
 		{"if (false) { 10 }", nil},
 		{"if (1) { 10 }", 10},
-		{"if (1 > 2) { 10 }", nil},
-		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 >= 2) { 10 }", nil},
+		{"if (1 >= 2) { 10 } else { 20 }", 20},
 	}
 
 	for _, tt := range tests {
@@ -233,13 +234,13 @@ func TestErrorHandling(t *testing.T) {
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
-			"if (10 > 1) { true + false; }",
+			"if (10 >= 1) { true + false; }",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
-if (10 > 1) {
-if (10 > 1) {
+if (10 >= 1) {
+if (10 >= 1) {
 	return true + false;
 }
 
@@ -792,14 +793,14 @@ func TestAssignment(t *testing.T) {
 		},
 		{
 			`
-			NO! == NO!
+			NO! >= NO!
 			`,
 			true,
 			"",
 		},
 		{
 			`
-			NO! == 10
+			NO! >= 10
 			`,
 			false,
 			"",

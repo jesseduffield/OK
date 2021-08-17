@@ -97,29 +97,12 @@ switch result[1] {
 
 No magic, just arrays and strings.
 
-### Compact Comparison Operators
-
-Rather than bash your head against the wall trying to remember all the various operators available, _OK?_ provides a limited operator set, keeping your code simple while still allowing you to compose the operators when needed.
-
-For example, consider _OK?_'s comparison operators: we only have `==`, `>`. These two operators, when used in conjunction with the bang (`!`) operator, give you all the power of another language without the bloated operator set:
-
-| In other languages | In _OK?_  |
-| ------------------ | --------- |
-| a == b             | a == b    |
-| a > b              | a > b     |
-| a != b             | !(a == b) |
-| a < b              | b > a     |
-| a <= b             | !(a > b)  |
-| a >= b             | !(b > a)  |
-
-This means that instead of juggling six different comparison operators in your head you can focus on what matters: creating great software.
-
 ### Readable Logical Operators
 
 Ever come across a conditional statement that chains a heap of long boolean expressions together?
 
 ```go
-switch p.isactive() && p.credits() > reqcreds && p.usertype() != "Admin" {
+switch p.isactive() && p.credits() >= reqcreds && p.nottype("Admin") {
   ...
 }
 ```
@@ -130,7 +113,7 @@ In _OK?_, the `&&` and `||` operators can only act on variables, so that it's po
 
 ```go
 // ERROR: '&&' operator must act on variables
-switch p.isactive() && p.credits() > reqcreds && p.usertype() != "Admin" {
+switch p.isactive() && p.credits() >= reqcreds && p.nottype("Admin") {
   ...
 }
 ```
@@ -139,8 +122,8 @@ Here's how the above switch statement would be done in _OK?_
 
 ```go
 let isactive = p.isactive()
-let enoughcr = p.credits() > reqcreds
-let notadmin = p.usertype() != "Admin"
+let enoughcr = p.credits() >= reqcreds
+let notadmin = p.nottype("Admin")
 switch isactive && enoughcr && notadmin {
   ...
 }
@@ -152,8 +135,8 @@ If you need to short-circuit your conditionals, you can use the `lazy` keyword:
 
 ```go
 let isactive = p.isactive()
-let enoughcr = lazy p.credits() > reqcredits
-let notadmin = lazy p.usertype() != "Admin"
+let enoughcr = lazy p.credits() >= reqcredits
+let notadmin = lazy p.nottype("Admin")
 switch isactive && enoughcr && notadmin {
   ...
 }
@@ -162,6 +145,33 @@ switch isactive && enoughcr && notadmin {
 If `p.isactive()` returns `true`, then `p.credits()` and `p.usertype()` will never be called.
 
 With this feature you get the best of both worlds: clean, readable code, without sacrificing performance.
+
+### One Comparison Operator
+
+Ever found yourself running in circles looking for the right comparison operator? Instead of wasting time memorising the hieroglyphics of `==`, `!=`, `>`, `<`, `>=`, and `<=`, what if we told you that you only needed one?
+
+_OK?_ features a single comparison operator: `>=`
+
+| In other languages | In _OK?_                                         |
+| ------------------ | ------------------------------------------------ |
+| `a >= b`           | `a >= b`                                         |
+| `a <= b`           | `b >= a)`                                        |
+| `a > b`            | `!(b >= a)`                                      |
+| `a < b`            | `!(a >= b)`                                      |
+| `a == b`           | `let x = a >= b; let y = b >= a; x && y`         |
+| `a != b`           | `let x = !(a >= b); let y = !(b >= a); x \|\| y` |
+
+This means that instead of juggling six different comparison operators in your head you can focus on what matters: creating great software.
+
+In the _OK?_ standard library we haven't found the need to extract any of these expressions into their own functions, but there's nothing stopping you from rolling your own:
+
+```go
+let equals = fn(a, b) {
+  let x = a >= b;
+  let y = lazy b >= a;
+  return x && y;
+}
+```
 
 ### Dead-simple Operator Precedence
 
@@ -330,5 +340,6 @@ Happy OK'ing!
 
 ### Credits
 
-* Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
-* Thanks to @markbergin77 for the idea about nulls not being OK
+- Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
+- Thanks to @markbergin77 for the idea about nulls not being OK
+- Thanks to @matomatical for showing that even two comparison operators was one too many.
