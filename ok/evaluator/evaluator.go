@@ -558,20 +558,24 @@ func evalIdentifier(
 		return val
 	}
 
-	if builtin, ok := builtins[node.Value]; ok {
+	if builtin, ok := getBuiltins()[node.Value]; ok {
 		return builtin
 	}
 
 	return object.NewError("identifier not found: " + node.Value)
 }
 
+func applyUserFunction(fn *object.Function, args []object.Object) object.Object {
+	extendedEnv := extendFunctionEnv(fn, args)
+	evaluated := Eval(fn.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
+
 func applyFunction(fn object.Object, args []object.Object, env *object.Environment) object.Object {
 	switch fn := fn.(type) {
 
 	case *object.Function:
-		extendedEnv := extendFunctionEnv(fn, args)
-		evaluated := Eval(fn.Body, extendedEnv)
-		return unwrapReturnValue(evaluated)
+		return applyUserFunction(fn, args)
 
 	case *object.Method:
 		newEnv := createMethodEnv(fn, args, env)

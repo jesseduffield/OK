@@ -958,6 +958,45 @@ func TestAssignment(t *testing.T) {
 			"a good-for-nothing aristocrat who likes classes",
 			"",
 		},
+		{
+			`
+			let arr = [1,2,3];
+			arr = map(arr, fn(e) { e * 2 }); // [2,4,6]
+			arr[1]
+			`,
+			4,
+			"",
+		},
+		{
+			`
+			let result = map([0,1], fn(e, i) {
+				switch i {
+				case 0:
+					return 5 * 2;
+				case 1:
+					return 10 * 3;
+				}
+			})
+			result[0]
+			`,
+			10,
+			"",
+		},
+		{
+			`
+			let every = fn(arr, check) {
+				let fail = false;
+				map(arr, fn(e) {
+					switch check(e) { case true: fail = true; } }
+				)
+				return !fail;
+			};
+
+			every([5,2,4,1,3], fn(e) { return e >= 2 })
+			`,
+			false,
+			"",
+		},
 	}
 
 	for _, tt := range tests {

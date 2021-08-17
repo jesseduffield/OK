@@ -45,6 +45,11 @@ NO!
 test // this is my comment
 testb
 // this is my other comment
+arr1
+a!a
+a?a
+?a
+!a
 `
 
 	tests := []struct {
@@ -173,22 +178,32 @@ testb
 		{token.COMMENT, "// this is my comment"},
 		{token.IDENT, "testb"},
 		{token.COMMENT, "// this is my other comment"},
+		{token.IDENT, "arr1"},
+		{token.IDENT, "a!a"},
+		{token.IDENT, "a?a"},
+		{token.ILLEGAL, "?"},
+		{token.IDENT, "a"},
+		{token.BANG, "!"},
+		{token.IDENT, "a"},
 		{token.EOF, ""},
 	}
 
 	l := New(input)
 
+	tokens := []token.Token{}
+
 	for i, tt := range tests {
 		tok := l.NextToken()
+		tokens = append(tokens, tok)
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q\n%q",
+				i, tt.expectedType, tok, tokens)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-				i, tt.expectedLiteral, tok.Literal)
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q\n%q",
+				i, tt.expectedLiteral, tok.Literal, tokens)
 		}
 	}
 }
