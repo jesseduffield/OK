@@ -312,6 +312,58 @@ Some example abbreviations:
 
 You may disagree with this idiom, and that's okay, because it's enforced by the compiler. You're welcome.
 
+### Concurrency, Iterated
+
+We've made it this far without talking about iteration or concurrency, and that's because in _OK?_, the two concepts are one and the same.
+
+No modern language can be taken seriously without first-class concurrency support, yet we've found that for all that support, developers still forget to leverage concurrency in the one place that screams for it the most: loops.
+
+#### Introducing _OK?_'s `map` function
+
+_OK?_'s only concurrency construct is also its only loop construct: the `map` function.
+
+`map` behaves similar to map functions in other languages, except for one thing: the callbacks are _always_ executed concurrently.
+
+For example, the following code snippet returns a result in one second:
+
+```go
+let doubled = map([1,2,3], fn(e) {
+  sleep(1); // sleep one second
+  e * 2
+}); // [2,4,6] obtained in one second
+```
+
+If you just want to compute two expensive values concurrently, you can use `map` with a switch:
+
+```go
+let result = map([0,1], fn(e, i) {
+  switch i {
+  case 0:
+    return expnsiv1();
+  case 1:
+    return expnsiv2();
+  }
+});
+let value1 = result[0];
+let value2 = result[1];
+```
+
+With the union of concurrency and iteration, the sky is the limit.
+
+```go
+let every = fn(arr, check) {
+  let passed = true;
+  map(arr, fn(e) {
+    switch check(e) { case true: passed = false; } }
+  )
+  return passed;
+};
+
+result = every([5,2,4,1,3], fn(e) { return e >= 2 }); // false
+```
+
+With this speed, your program's going to finish before you've even started writing it.
+
 ### Testimonials
 
 Dave says:

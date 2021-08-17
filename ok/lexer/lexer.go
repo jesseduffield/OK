@@ -113,7 +113,7 @@ func (l *Lexer) NextToken() token.Token {
 	case '.':
 		tok = newToken(token.PERIOD, l.ch)
 	default:
-		if isValidIdentifierChar(l.ch) {
+		if isValidIdentifierStartChar(l.ch) {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
@@ -147,16 +147,16 @@ func (l *Lexer) readString() string {
 
 func (l *Lexer) readIdentifier() string {
 	position := l.position
-	for isValidIdentifierChar(l.ch) {
+	// the bang is here for the sake of the 'NO!' token,
+	// and the ? is here for the sake of the 'ayok?' builtin function
+	for isValidIdentifierStartChar(l.ch) || (l.ch > '0' && l.ch < '9') || l.ch == '!' || l.ch == '?' {
 		l.readChar()
 	}
 	return l.input[position:l.position]
 }
 
-func isValidIdentifierChar(ch byte) bool {
-	// the bang is here for the sake of the 'NO!' token,
-	// and the ? is here for the sake of the 'ayok?' builtin function
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '!' || ch == '?'
+func isValidIdentifierStartChar(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
 
 func eofByte() byte {

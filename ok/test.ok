@@ -38,3 +38,28 @@ p.init("John", "");
 puts(p.whoami());
 p.makeold();
 puts(p.whoami());
+
+let arr = [1,2,3];
+map(arr, fn(e) { e * 2 }); // [2,4,6]
+
+let result = map([0,1], fn(e, i) {
+  switch i {
+  case 0:
+    return 5 * 2;
+  case 1:
+    return 10 * 3;
+  }
+})
+puts(result) // [10, 30]
+
+let every = fn(arr, check) {
+  let fail = false;
+  map(arr, fn(e) {
+    switch check(e) { case true: fail = true; } }
+  )
+  return !fail;
+};
+
+result = every([5,2,4,1,3], fn(e) { return e >= 2 }) // false
+
+puts(result) // false
