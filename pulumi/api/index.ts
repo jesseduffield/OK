@@ -66,7 +66,7 @@ const api = new awsx.apigateway.API('ok-api-prod', {
     {
       path: '/run',
       method: 'POST',
-      eventHandler: aws.lambda.Function.get(lambdaName, func.arn),
+      eventHandler: func,
     },
     {
       // see https://github.com/pulumi/pulumi-awsx/issues/545#issuecomment-880579206
