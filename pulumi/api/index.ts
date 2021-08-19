@@ -54,6 +54,8 @@ const func = new aws.lambda.Function(
     role: role.arn,
     runtime: 'go1.x',
     code: fileArchive,
+    // timeout of 5s handled internally so we're just setting this above that value so that we're not getting a useless CORS error on timeout
+    timeout: 10,
   },
   {
     dependsOn: [rolePolicyAttachment],
@@ -91,3 +93,7 @@ const api = new awsx.apigateway.API('ok-api-prod', {
 
 // Export the auto-generated API Gateway base URL.
 export const url = api.url;
+
+pulumi.log.info(
+  'If the below output url has changed since last time you need to go to `site/src/config.ts` and update the `serverUrl` key accordingly.'
+);

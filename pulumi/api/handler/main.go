@@ -69,6 +69,6 @@ func withTimeout(f func()) error {
 	case <-c:
 		return nil
 	case <-time.After(5 * time.Second):
-		return errors.New("Timed out (program must complete within 5 seconds")
+		return errors.New("Timed out (program must complete within 5 seconds)")
 	}
 }

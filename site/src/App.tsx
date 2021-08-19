@@ -3,11 +3,7 @@ import './App.css';
 import { templates } from './templates';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import { contentToUrl, urlToContent } from './utils/encoding';
-
-const baseUrl = 'https://www.okquestionmark.org';
-const serverUrl =
-  'https://jiot0jrsqi.execute-api.ap-southeast-2.amazonaws.com/stage';
-const docsUrl = 'https://github.com/jesseduffield/ok';
+import config from './config';
 
 const run = async (text: string) => {
   const requestOptions = {
@@ -19,7 +15,10 @@ const run = async (text: string) => {
   };
 
   try {
-    const response = await fetch(`${serverUrl}/run`, requestOptions as any);
+    const response = await fetch(
+      `${config.serverUrl}/run`,
+      requestOptions as any
+    );
     console.log(response);
     return await response.text();
   } catch (error) {
@@ -65,7 +64,7 @@ const App = () => {
         </select>
         <Button
           onClick={() => {
-            window!.open(docsUrl, '_blank')!.focus();
+            window!.open(config.docsUrl, '_blank')!.focus();
           }}
         >
           Docs
@@ -137,7 +136,7 @@ const Share = ({ value }: { value: string }) => {
 
   return (
     <>
-      <Button onClick={() => setShareUrl(contentToUrl(baseUrl, value))}>
+      <Button onClick={() => setShareUrl(contentToUrl(config.baseUrl, value))}>
         Share
       </Button>
       {shareUrl !== null && (
