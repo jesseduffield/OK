@@ -4,9 +4,10 @@ import { templates } from './templates';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import { contentToUrl, urlToContent } from './utils/encoding';
 
-const baseUrl = 'http://www.okquestionmark.org';
+const baseUrl = 'https://www.okquestionmark.org';
 const serverUrl =
   'https://jiot0jrsqi.execute-api.ap-southeast-2.amazonaws.com/stage';
+const docsUrl = 'https://github.com/jesseduffield/ok';
 
 const run = async (text: string) => {
   const requestOptions = {
@@ -62,6 +63,13 @@ const App = () => {
             </option>
           ))}
         </select>
+        <Button
+          onClick={() => {
+            window!.open(docsUrl, '_blank')!.focus();
+          }}
+        >
+          Docs
+        </Button>
       </header>
       <Editor value={value} onNewValue={value => setValue(value)} />
       <p className="Output">{output}</p>
