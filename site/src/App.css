@@ -13,15 +13,15 @@
 
 .Select {
   font-size: 0.875rem;
-  border: 0.0625rem solid #3742ab;
+  border: 0.0625rem solid #3764c4;
 }
 
 .Button {
   height: 30px;
-  border: 1px solid #3742ab;
+  border: 1px solid #3764c4;
   font-size: 16px;
   font-family: sans-serif;
-  background: #3742ab;
+  background: #3764c4;
   color: white;
   position: static;
   top: 1px;
@@ -47,9 +47,7 @@
   right: 0;
   top: 0;
   height: 50px;
-  /* #f2e0f5 */
-  /* #E0EBF5 */
-  background-color: #f2e0f5;
+  background-color: #b4d3eb;
 }
 
 .Banner > * {
@@ -82,8 +80,7 @@
   font-family: Menlo, monospace;
   font-size: 11pt;
   font-weight: 500;
-  /* #ffffdd */
-  background:#dfeafc;
+  background:#dffcfc;
 }
 
 .ShareInput {
