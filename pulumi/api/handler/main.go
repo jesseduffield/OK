@@ -17,7 +17,7 @@ type Body struct {
 }
 
 func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	response := events.APIGatewayProxyResponse{IsBase64Encoded: false, Headers: map[string]string{
+	response := events.APIGatewayProxyResponse{StatusCode: 200, IsBase64Encoded: false, Headers: map[string]string{
 		"Content-Type":                "text/plain",
 		"Access-Control-Allow-Origin": "*",
 	}}
@@ -26,7 +26,6 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	rawIn := json.RawMessage(b64String)
 	bodyBytes, err := rawIn.MarshalJSON()
 	if err != nil {
-		response.StatusCode = 500
 		response.Body = err.Error()
 		return response, nil
 	}
@@ -34,7 +33,6 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	data := Body{}
 	err = json.Unmarshal(bodyBytes, &data)
 	if err != nil {
-		response.StatusCode = 500
 		response.Body = err.Error()
 		return response, nil
 	}
@@ -47,12 +45,10 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	)
 	output := writer.String()
 	if err != nil {
-		response.StatusCode = 422
 		response.Body = output + "\n" + err.Error()
 		return response, nil
 	}
 
-	response.StatusCode = 200
 	response.Body = output
 	return response, nil
 }
