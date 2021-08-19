@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"os"
 	"testing"
 
 	"github.com/jesseduffield/OK/ok/lexer"
@@ -43,8 +44,9 @@ func testEval(t *testing.T, input string) object.Object {
 	p := parser.New(l)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
+	evaluator := New(os.Stdout)
 
-	return Eval(program, env)
+	return evaluator.Eval(program, env)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
