@@ -45,14 +45,15 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	err = withTimeout(
 		func() { interpreter.Interpret(reader, writer) },
 	)
+	output := writer.String()
 	if err != nil {
 		response.StatusCode = 422
-		response.Body = err.Error()
+		response.Body = output + "\n" + err.Error()
 		return response, nil
 	}
 
 	response.StatusCode = 200
-	response.Body = writer.String()
+	response.Body = output
 	return response, nil
 }
 
