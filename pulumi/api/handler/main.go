@@ -17,22 +17,26 @@ type Body struct {
 }
 
 func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	headers := map[string]string{
+	response := events.APIGatewayProxyResponse{IsBase64Encoded: false, Headers: map[string]string{
 		"Content-Type":                "text/plain",
 		"Access-Control-Allow-Origin": "*",
-	}
+	}}
 
 	b64String, _ := base64.StdEncoding.DecodeString(request.Body)
 	rawIn := json.RawMessage(b64String)
 	bodyBytes, err := rawIn.MarshalJSON()
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500, IsBase64Encoded: false, Headers: headers}, nil
+		response.StatusCode = 500
+		response.Body = err.Error()
+		return response, nil
 	}
 
 	data := Body{}
 	err = json.Unmarshal(bodyBytes, &data)
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500, IsBase64Encoded: false, Headers: headers}, nil
+		response.StatusCode = 500
+		response.Body = err.Error()
+		return response, nil
 	}
 
 	reader := strings.NewReader(data.Content)
@@ -42,10 +46,14 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		func() { interpreter.Interpret(reader, writer) },
 	)
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500, IsBase64Encoded: false, Headers: headers}, nil
+		response.StatusCode = 422
+		response.Body = err.Error()
+		return response, nil
 	}
 
-	return events.APIGatewayProxyResponse{Body: writer.String(), StatusCode: 200, IsBase64Encoded: false, Headers: headers}, nil
+	response.StatusCode = 200
+	response.Body = writer.String()
+	return response, nil
 }
 
 func main() {
