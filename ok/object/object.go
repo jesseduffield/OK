@@ -6,8 +6,8 @@ import (
 	"hash/fnv"
 	"strings"
 
-	"github.com/jesseduffield/OK/ast"
-	"github.com/jesseduffield/OK/token"
+	"github.com/jesseduffield/OK/ok/ast"
+	"github.com/jesseduffield/OK/ok/token"
 )
 
 type ObjectType string

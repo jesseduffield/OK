@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/OK/ast"
-	"github.com/jesseduffield/OK/lexer"
-	"github.com/jesseduffield/OK/token"
+	"github.com/jesseduffield/OK/ok/ast"
+	"github.com/jesseduffield/OK/ok/lexer"
+	"github.com/jesseduffield/OK/ok/token"
 )
 
 type Parser struct {
@@ -142,7 +142,6 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	panic("test")
 	p.appendError(
 		fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type),
 	)

@@ -4,36 +4,33 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 
-	"github.com/jesseduffield/OK/evaluator"
-	"github.com/jesseduffield/OK/lexer"
-	"github.com/jesseduffield/OK/object"
-	"github.com/jesseduffield/OK/parser"
+	"github.com/jesseduffield/OK/ok/evaluator"
+	"github.com/jesseduffield/OK/ok/lexer"
+	"github.com/jesseduffield/OK/ok/object"
+	"github.com/jesseduffield/OK/ok/parser"
 )
 
-func Interpret(filename string) {
-	content, err := ioutil.ReadFile(filename)
+func Interpret(r io.Reader, w io.Writer) {
+	content, err := ioutil.ReadAll(r)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	out := os.Stdout
 
 	l := lexer.New(string(content))
 	p := parser.New(l)
 
 	program := p.ParseProgram()
 	if len(p.Errors()) != 0 {
-		printParserErrors(out, p.Errors())
+		printParserErrors(w, p.Errors())
 		return
 	}
 
 	env := object.NewEnvironment()
-	evaluated := evaluator.Eval(program, env)
+	evaluated := evaluator.New(w).Eval(program, env)
 	if evaluated != nil {
-		io.WriteString(out, evaluated.Inspect())
-		io.WriteString(out, "\n")
+		io.WriteString(w, evaluated.Inspect())
+		io.WriteString(w, "\n")
 	}
 }
 

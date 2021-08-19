@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/jesseduffield/OK/token"
+	"github.com/jesseduffield/OK/ok/token"
 )
 
 type StructField struct {

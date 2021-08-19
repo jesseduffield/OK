@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/jesseduffield/OK/token"
+import "github.com/jesseduffield/OK/ok/token"
 
 const (
 	_ int = iota

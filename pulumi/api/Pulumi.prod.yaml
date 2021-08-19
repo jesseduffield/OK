@@ -1,0 +1,3 @@
+config:
+  aws:profile: ci_admin
+  aws:region: ap-southeast-2

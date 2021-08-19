@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jesseduffield/OK/ast"
-	"github.com/jesseduffield/OK/lexer"
+	"github.com/jesseduffield/OK/ok/ast"
+	"github.com/jesseduffield/OK/ok/lexer"
 )
 
 func TestLetStatements(t *testing.T) {

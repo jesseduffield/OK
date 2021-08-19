@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 
-	"github.com/jesseduffield/OK/evaluator"
-	"github.com/jesseduffield/OK/lexer"
-	"github.com/jesseduffield/OK/object"
-	"github.com/jesseduffield/OK/parser"
+	"github.com/jesseduffield/OK/ok/evaluator"
+	"github.com/jesseduffield/OK/ok/lexer"
+	"github.com/jesseduffield/OK/ok/object"
+	"github.com/jesseduffield/OK/ok/parser"
 )
 
 const PROMPT = ">> "
@@ -34,7 +35,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program, env)
+		evaluated := evaluator.New(os.Stdout).Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")

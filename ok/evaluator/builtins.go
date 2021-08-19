@@ -2,13 +2,14 @@ package evaluator
 
 import (
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
-	"github.com/jesseduffield/OK/object"
+	"github.com/jesseduffield/OK/ok/object"
 )
 
-func getBuiltins() map[string]*object.Builtin {
+func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 	return map[string]*object.Builtin{
 		"len": {
 			Fn: func(args ...object.Object) object.Object {
@@ -113,7 +114,7 @@ func getBuiltins() map[string]*object.Builtin {
 		"puts": {
 			Fn: func(args ...object.Object) object.Object {
 				for _, arg := range args {
-					fmt.Println(arg.Inspect())
+					fmt.Fprintln(out, arg.Inspect())
 				}
 
 				return object.NULL
@@ -168,9 +169,9 @@ func getBuiltins() map[string]*object.Builtin {
 					i := i
 					go func() {
 						if len(fnObj.Parameters) == 1 {
-							result.Elements[i] = applyUserFunction(fnObj, []object.Object{el})
+							result.Elements[i] = e.applyUserFunction(fnObj, []object.Object{el})
 						} else {
-							result.Elements[i] = applyUserFunction(fnObj, []object.Object{el, &object.Integer{Value: int64(i)}})
+							result.Elements[i] = e.applyUserFunction(fnObj, []object.Object{el, &object.Integer{Value: int64(i)}})
 						}
 
 						waitGroup.Done()

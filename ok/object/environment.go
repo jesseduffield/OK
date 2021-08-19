@@ -3,7 +3,7 @@ package object
 import (
 	"fmt"
 
-	"github.com/jesseduffield/OK/ast"
+	"github.com/jesseduffield/OK/ok/ast"
 )
 
 type Environment struct {

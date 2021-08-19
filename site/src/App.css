@@ -1,0 +1,98 @@
+@import 'codemirror/lib/codemirror.css';
+/* @import 'codemirror/theme/material.css'; */
+
+/* Most of this is taken from the Go playground site. It's a parody so I'm pretty sure this constitutes fair use */
+
+.App {
+
+}
+
+.OK {
+  font-style:italic;
+}
+
+.Select {
+  font-size: 0.875rem;
+  border: 0.0625rem solid #3742ab;
+}
+
+.Button {
+  height: 30px;
+  border: 1px solid #3742ab;
+  font-size: 16px;
+  font-family: sans-serif;
+  background: #3742ab;
+  color: white;
+  position: static;
+  top: 1px;
+  border-radius: 5px;
+  -webkit-appearance: none;
+  font-weight:600;
+}
+
+.Head {
+  padding-left: 10px;
+  padding-right: 20px;
+  padding-top: 5px;
+  font-size: 20px;
+  font-family: sans-serif;
+}
+
+.Banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 50px;
+  /* #f2e0f5 */
+  /* #E0EBF5 */
+  background-color: #f2e0f5;
+}
+
+.Banner > * {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 5px;
+  border-radius: 5px;
+  box-sizing: border-box;
+  height: 30px;
+}
+
+
+.Editor > *{
+  margin-top: 50px;
+}
+
+.Output {
+  font-family: Menlo, monospace;
+  font-size: 11pt;
+  padding:10px;
+  white-space: pre-line;
+}
+
+.RunComplete {
+  color: grey;
+}
+
+.CodeMirror {
+  height: 670px;
+  font-family: Menlo, monospace;
+  font-size: 11pt;
+  font-weight: 500;
+  /* #ffffdd */
+  background:#dfeafc;
+}
+
+.ShareInput {
+  width: 280px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  background: #eee;
+  color: black;
+  overflow-x: scroll;
+  white-space: nowrap;
+  padding-top: 4px;
+}

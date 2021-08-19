@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/OK/ast"
+	"github.com/jesseduffield/OK/ok/ast"
 )
 
 type StructInstance struct {
