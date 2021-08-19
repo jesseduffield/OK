@@ -1,5 +1,7 @@
 # _OK?_
 
+_Try it out on the [playground](https://www.okquestionmark.org/)_
+
 ## Programming Is Simple Again
 
 _OK?_ is a modern, dynamically typed programming language with a vision for the future.

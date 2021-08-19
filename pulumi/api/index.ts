@@ -94,6 +94,7 @@ const api = new awsx.apigateway.API('ok-api-prod', {
 // Export the auto-generated API Gateway base URL.
 export const url = api.url;
 
+// TODO: do this automatically
 pulumi.log.info(
   'If the below output url has changed since last time you need to go to `site/src/config.ts` and update the `serverUrl` key accordingly.'
 );
