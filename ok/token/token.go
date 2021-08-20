@@ -1,10 +1,18 @@
 package token
 
+import "fmt"
+
 type TokenType string
 
 type Token struct {
 	Type    TokenType
 	Literal string
+	Line    int
+	Column  int
+}
+
+func (self Token) Location() string {
+	return fmt.Sprintf("line %d, column %d", self.Line+1, self.Column)
 }
 
 const (

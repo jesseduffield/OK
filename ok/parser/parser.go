@@ -111,30 +111,34 @@ func (p *Parser) parseLazyExpression() ast.Expression {
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
-	if !p.validateIdentifier(p.curToken.Literal) {
-		return nil
-	}
+	p.validateIdentifier(p.curToken.Literal)
 
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
-func (p *Parser) validateIdentifier(identifier string) bool {
+func (p *Parser) validateIdentifier(identifier string) {
 	if len(identifier) > MAX_IDENTIFIER_LENGTH {
-		p.errors = append(p.errors, "Identifier must be at most eight characters long")
-		return false
+		suggested := shortenedIdentifier(identifier)
+
+		p.appendError(fmt.Sprintf(
+			"Identifier must be at most eight characters long; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
+			suggested,
+		))
 	}
 
 	if strings.ToLower(identifier) != identifier {
-		p.errors = append(p.errors, "Identifier must not contain uppercase characters")
-		return false
+		p.appendError(fmt.Sprintf(
+			"Identifier must not contain uppercase characters; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
+			strings.ToLower(identifier),
+		))
 	}
 
 	if strings.Contains(identifier, "_") {
-		p.errors = append(p.errors, "Identifier must not contain underscores")
-		return false
+		p.appendError(fmt.Sprintf(
+			"Identifier must not contain underscores; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
+			removeUnderscores(identifier),
+		))
 	}
-
-	return true
 }
 
 func (p *Parser) Errors() []string {
@@ -148,7 +152,13 @@ func (p *Parser) peekError(t token.TokenType) {
 }
 
 func (p *Parser) appendError(msg string) {
-	p.errors = append(p.errors, msg)
+	locatedMsg := fmt.Sprintf("%s (%s): %s", p.curToken.Location(), p.curToken.Literal, msg)
+	p.errors = append(p.errors, locatedMsg)
+}
+
+func (p *Parser) appendErrorForExpression(msg string, exp ast.Expression) {
+	locatedMsg := fmt.Sprintf("%s (%s): %s", exp.GetToken().Location(), exp.String(), msg)
+	p.errors = append(p.errors, locatedMsg)
 }
 
 func (p *Parser) nextToken() {
@@ -201,7 +211,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
-		p.noPrefixParseFnError(p.curToken.Type)
+		p.noPrefixParseFnError(p.curToken)
 		return nil
 	}
 	leftExp := prefix()
@@ -231,9 +241,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
-	if !p.validateIdentifier(p.curToken.Literal) {
-		return nil
-	}
+	p.validateIdentifier(p.curToken.Literal)
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
 	if !p.expectPeek(token.ASSIGN) {
@@ -296,8 +304,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
-		p.errors = append(p.errors, msg)
+		p.appendError(fmt.Sprintf("'%s' is not a valid integer", p.curToken.Literal))
 		return nil
 	}
 
@@ -310,9 +317,22 @@ func (p *Parser) parseNull() ast.Expression {
 	return &ast.NullLiteral{Token: p.curToken}
 }
 
-func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
-	p.errors = append(p.errors, msg)
+func (p *Parser) handleUnexpectedToken(t token.Token) {
+	switch t.Literal {
+	case ">", "<", "<=", "==", "!=":
+		p.appendError(
+			fmt.Sprintf(
+				"Unexpected token '%s'. There is only one comparison operator: '>='.\nSee https://github.com/jesseduffield/ok#one-comparison-operator",
+				t.Literal,
+			),
+		)
+	default:
+		p.appendError(fmt.Sprintf("Unexpected token '%s'", t.Literal))
+	}
+}
+
+func (p *Parser) noPrefixParseFnError(t token.Token) {
+	p.handleUnexpectedToken(t)
 }
 
 func (p *Parser) peekPrecedence() int {
@@ -368,16 +388,16 @@ func (p *Parser) parseLogicalInfixExpression(left ast.Expression) ast.Expression
 	for _, operand := range []struct {
 		exp  ast.Expression
 		side string
-	}{{castExp.Left, "left"}, {castExp.Right, "right"}} {
+	}{{castExp.Left, "Left"}, {castExp.Right, "Right"}} {
 		switch v := operand.exp.(type) {
 		case *ast.Identifier:
 		case *ast.InfixExpression:
 			if v.Operator != "&&" && v.Operator != "||" {
-				p.errors = append(p.errors, fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing the %s operand in a variable", operand.side, operand.side))
+				p.appendErrorForExpression(fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing '%s' in a variable", operand.side, v.String()), v)
 				return nil
 			}
 		default:
-			p.errors = append(p.errors, fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing the %s operand in a variable", operand.side, operand.side))
+			p.appendErrorForExpression(fmt.Sprintf("%s operand of logical expression must be a variable. Consider storing '%s' in a variable", operand.side, v.String()), v)
 			return nil
 		}
 	}
@@ -501,7 +521,9 @@ func (p *Parser) parseSwitchBlockStatement() *ast.BlockStatement {
 	statementCount := 0
 	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) && !p.curTokenIs(token.DEFAULT) && !p.curTokenIs(token.CASE) {
 		if statementCount >= maxAllowedStatements {
-			p.appendError("switch blocks can only contain a single statement. If you want to include multiple statements, use a function call")
+			p.appendError(
+				"switch blocks can only contain a single statement. If you want to include multiple statements, use a function call\nSee https://github.com/jesseduffield/ok#readable-switches",
+			)
 			return nil
 		}
 		stmt := p.parseStatement()
@@ -573,13 +595,11 @@ func (p *Parser) parseStruct() *ast.Struct {
 
 	for p.peekTokenIs(token.FIELD) {
 		p.nextToken()
-		fieldName := p.peekToken.Literal
-		if !p.validateIdentifier(fieldName) {
-			return nil
-		}
+		p.nextToken()
+		fieldName := p.curToken.Literal
+		p.validateIdentifier(fieldName)
 		// no public struct fields for now
 		str.Fields = append(str.Fields, ast.StructField{Name: fieldName, Public: false})
-		p.nextToken()
 	}
 
 	for !p.peekTokenIs(token.RBRACE) {
@@ -593,11 +613,9 @@ func (p *Parser) parseStruct() *ast.Struct {
 			}
 		}
 
-		methodName := p.peekToken.Literal
-		if !p.validateIdentifier(methodName) {
-			return nil
-		}
 		p.nextToken()
+		methodName := p.curToken.Literal
+		p.validateIdentifier(methodName)
 		p.nextToken()
 
 		fn := p.parseFunctionLiteral().(*ast.FunctionLiteral)

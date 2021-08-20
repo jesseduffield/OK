@@ -28,8 +28,9 @@ type Struct struct {
 	Methods map[string]StructMethod
 }
 
-func (self *Struct) statementNode()       {}
-func (self *Struct) TokenLiteral() string { return self.Token.Literal }
+func (self *Struct) statementNode()        {}
+func (self *Struct) GetToken() token.Token { return self.Token }
+func (self *Struct) TokenLiteral() string  { return self.Token.Literal }
 func (self *Struct) String() string {
 	var out bytes.Buffer
 
@@ -79,8 +80,9 @@ type StructInstantiation struct {
 	Arguments  []Expression
 }
 
-func (self *StructInstantiation) expressionNode()      {}
-func (self *StructInstantiation) TokenLiteral() string { return self.Token.Literal }
+func (self *StructInstantiation) expressionNode()       {}
+func (self *StructInstantiation) GetToken() token.Token { return self.Token }
+func (self *StructInstantiation) TokenLiteral() string  { return self.Token.Literal }
 func (self *StructInstantiation) String() string {
 	var out bytes.Buffer
 
@@ -104,8 +106,9 @@ type StructMemberAccessExpression struct {
 	MemberName string
 }
 
-func (self *StructMemberAccessExpression) expressionNode()      {}
-func (self *StructMemberAccessExpression) TokenLiteral() string { return self.Token.Literal }
+func (self *StructMemberAccessExpression) expressionNode()       {}
+func (self *StructMemberAccessExpression) GetToken() token.Token { return self.Token }
+func (self *StructMemberAccessExpression) TokenLiteral() string  { return self.Token.Literal }
 func (self *StructMemberAccessExpression) String() string {
 	return fmt.Sprintf("%s.%s", self.Left.String(), self.MemberName)
 }

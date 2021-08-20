@@ -3,6 +3,7 @@ package lexer
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/OK/ok/token"
 )
 
@@ -50,6 +51,11 @@ a!a
 a?a
 ?a
 !a
+<=
+<
+>
+==
+!=
 `
 
 	tests := []struct {
@@ -166,8 +172,7 @@ a?a
 		{token.OR, "||"},
 		{token.IDENT, "bar"},
 		{token.INT, "10"},
-		{token.ILLEGAL, "!"},
-		{token.ASSIGN, "="},
+		{token.ILLEGAL, "!="},
 		{token.INT, "12"},
 		{token.LAZY, "lazy"},
 		{token.INT, "3"},
@@ -185,6 +190,11 @@ a?a
 		{token.IDENT, "a"},
 		{token.BANG, "!"},
 		{token.IDENT, "a"},
+		{token.ILLEGAL, "<="},
+		{token.ILLEGAL, "<"},
+		{token.ILLEGAL, ">"},
+		{token.ILLEGAL, "=="},
+		{token.ILLEGAL, "!="},
 		{token.EOF, ""},
 	}
 
@@ -197,13 +207,74 @@ a?a
 		tokens = append(tokens, tok)
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q\n%q",
-				i, tt.expectedType, tok, tokens)
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q\n%q",
-				i, tt.expectedLiteral, tok.Literal, tokens)
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestLocationMarking(t *testing.T) {
+	input := "let five = 5;\nfive >= 4;\n\"aa\" >= \"b\""
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+		expectedLine    int
+		expectedColumn  int
+	}{
+		// this is stored as line zero but displayed as line 1 in the Location() method
+		{token.LET, "let", 0, 1},
+		{token.IDENT, "five", 0, 5},
+		{token.ASSIGN, "=", 0, 10},
+		{token.INT, "5", 0, 12},
+		{token.SEMICOLON, ";", 0, 13},
+		{token.IDENT, "five", 1, 1},
+		{token.GTEQ, ">=", 1, 6},
+		{token.INT, "4", 1, 9},
+		{token.SEMICOLON, ";", 1, 10},
+		{token.STRING, "aa", 2, 1},
+		{token.GTEQ, ">=", 2, 6},
+		{token.STRING, "b", 2, 9},
+		{token.EOF, "", 2, 12},
+	}
+
+	l := New(input)
+
+	tokens := []token.Token{}
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+		tokens = append(tokens, tok)
+
+		if tok.Type != tt.expectedType {
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+
+		if tok.Line != tt.expectedLine {
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - line wrong. expected=%d, got=%d",
+				i, tt.expectedLine, tok.Line)
+		}
+
+		if tok.Column != tt.expectedColumn {
+			t.Log(spew.Sdump(tokens))
+			t.Fatalf("tests[%d] - column wrong. expected=%d, got=%d",
+				i, tt.expectedColumn, tok.Column)
 		}
 	}
 }

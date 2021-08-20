@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/jesseduffield/OK/ok/evaluator"
 	"github.com/jesseduffield/OK/ok/lexer"
@@ -27,16 +28,13 @@ func Interpret(r io.Reader, w io.Writer) {
 	}
 
 	env := object.NewEnvironment()
-	evaluated := evaluator.New(w).Eval(program, env)
-	if evaluated != nil {
-		io.WriteString(w, evaluated.Inspect())
-		io.WriteString(w, "\n")
-	}
+	evaluator.New(w).Eval(program, env)
 }
 
 func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, " Parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+		indentedMsg := strings.Replace(msg, "\n", "\n\t", -1)
+		io.WriteString(out, "\t"+indentedMsg+"\n")
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/jesseduffield/OK/ok/evaluator"
 	"github.com/jesseduffield/OK/ok/lexer"
@@ -46,6 +47,7 @@ func Start(in io.Reader, out io.Writer) {
 func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, " Parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+		indentedMsg := strings.Replace(msg, "\n", "\n\t", -1)
+		io.WriteString(out, "\t"+indentedMsg+"\n")
 	}
 }

@@ -1204,16 +1204,17 @@ func TestParsingStructDefinition(t *testing.T) {
 
 func TestParsingInvalidStructDefinition(t *testing.T) {
 	input := `notaclass person { public field name }`
+	expectedError := "line 1, column 20 (public): public nac fields are not permitted"
 
 	l := lexer.New(input)
 	p := New(l)
 	p.ParseProgram()
 	for _, err := range p.errors {
-		if err == "public nac fields are not permitted" {
+		if err == expectedError {
 			return
 		}
 	}
-	t.Fatalf("expected error about public nac fields not being permitted")
+	t.Fatalf("expected error: %s\nGot: %s", expectedError, strings.Join(p.errors, "\n"))
 }
 
 func TestParsingStructInstantiation(t *testing.T) {
@@ -1249,7 +1250,7 @@ func TestParsingInvalidSwitch(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 	p.ParseProgram()
-	expectedError := "switch blocks can only contain a single statement. If you want to include multiple statements, use a function call"
+	expectedError := "line 1, column 26 (y): switch blocks can only contain a single statement. If you want to include multiple statements, use a function call\nSee https://github.com/jesseduffield/ok#readable-switches"
 	for _, err := range p.errors {
 		if err == expectedError {
 			return
@@ -1264,40 +1265,57 @@ func TestParsingInvalidExpressions(t *testing.T) {
 		expectedError string
 	}{
 		{
-			input:         "a && b()",
-			expectedError: "right operand of logical expression must be a variable. Consider storing the right operand in a variable",
+			input: "a && b()",
+			// TODO: use the column of the start of b() not the end.
+			expectedError: "line 1, column 7 (b()): Right operand of logical expression must be a variable. Consider storing 'b()' in a variable",
 		},
 		{
 			input:         "a() && b",
-			expectedError: "left operand of logical expression must be a variable. Consider storing the left operand in a variable",
+			expectedError: "line 1, column 2 (a()): Left operand of logical expression must be a variable. Consider storing 'a()' in a variable",
 		},
 		{
 			input:         "a && true",
-			expectedError: "right operand of logical expression must be a variable. Consider storing the right operand in a variable",
+			expectedError: "line 1, column 6 (true): Right operand of logical expression must be a variable. Consider storing 'true' in a variable",
 		},
 		{
-			input:         "abcdefghi",
-			expectedError: "Identifier must be at most eight characters long",
+			input:         "REALLY_LONG_VARIABLE_NAME",
+			expectedError: "line 1, column 1 (REALLY_LONG_VARIABLE_NAME): Identifier must be at most eight characters long; consider using 'rlvn' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 		},
 		{
 			input:         "a_b",
-			expectedError: "Identifier must not contain underscores",
+			expectedError: "line 1, column 1 (a_b): Identifier must not contain underscores; consider using 'ab' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 		},
 		{
 			input:         "abC",
-			expectedError: "Identifier must not contain uppercase characters",
+			expectedError: "line 1, column 1 (abC): Identifier must not contain uppercase characters; consider using 'abc' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 		},
 		{
-			input:         "let asjdlkajslkdjasdl = 5",
-			expectedError: "Identifier must be at most eight characters long",
+			input:         "let really_long_variable_name = 5",
+			expectedError: "line 1, column 5 (really_long_variable_name): Identifier must be at most eight characters long; consider using 'rlvn' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 		},
 		{
-			input:         "notaclass me { field abcdefgasdal }",
-			expectedError: "Identifier must be at most eight characters long",
+			input:         "notaclass me { field really_long_variable_name }",
+			expectedError: "line 1, column 22 (really_long_variable_name): Identifier must be at most eight characters long; consider using 'rlvn' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 		},
 		{
-			input:         "notaclass me { abcdefgasdal fn() { return 5 } }",
-			expectedError: "Identifier must be at most eight characters long",
+			input:         "notaclass me { really_long_variable_name fn() { return 5 } }",
+			expectedError: "line 1, column 16 (really_long_variable_name): Identifier must be at most eight characters long; consider using 'rlvn' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
+		},
+		{
+			input:         "a < b",
+			expectedError: "line 1, column 3 (<): Unexpected token '<'. There is only one comparison operator: '>='.\nSee https://github.com/jesseduffield/ok#one-comparison-operator",
+		},
+		{
+			input:         "a ** b",
+			expectedError: "line 1, column 4 (*): Unexpected token '*'",
+		},
+		{
+			input:         "a * b\nb ** c",
+			expectedError: "line 2, column 4 (*): Unexpected token '*'",
+		},
+		{
+			input:         "999999999999999999999999999",
+			expectedError: "line 1, column 1 (999999999999999999999999999): '999999999999999999999999999' is not a valid integer",
 		},
 	}
 
@@ -1363,6 +1381,48 @@ func expectStatements(t *testing.T, statements []ast.Statement, expected []strin
 		if statements[i].String() != str {
 			t.Fatalf("unexpected statement got=\n%s\nexpected=\n%s\n",
 				statements[i].String(), expected[i])
+		}
+	}
+}
+
+func TestShortenedIdentifier(t *testing.T) {
+	scenarios := []struct {
+		input    string
+		expected string
+	}{
+		// already short enough
+		{"aa", "aa"},
+		// already short enough
+		{"abcdefgh", "abcdefgh"},
+		// removing underscores is sufficient to satisfy max length
+		{"a_b_c_d_e_f_g", "abcdefg"},
+		// removing underscores is not sufficient to satisfy max length,
+		// so abbreivation is used
+		{"really_long_variable_name", "rlvn"},
+		// same with camelCase
+		{"reallyLongVariableName", "rlvn"},
+		// not abbreviating here; falling back to more generic approach
+		{"reallylongvariablename", "rlynvbnm"},
+		// removes vowels after first letter
+		{"abcdfghi", "abcdfghi"},
+		// starts removing consonants after all the vowels are gone
+		{"aabaacaadaafaagaahaajaak", "abdfghjk"},
+		// truncates if still too long after removing consonants
+		{"alskdfhljkahsdfaoipequwaksjdhjfklajreopiwqhjkaf", "alkflksf"},
+		// more examples
+		{"realvalues", "rlvalues"},
+		{"smallValue1", "sv1"},
+		{"longishValue", "lngshvle"},
+		{"another_one", "anthrone"},
+		{"anotherOne", "anthrone"},
+		{"oneTwoThree", "ott"},
+	}
+
+	for _, scenario := range scenarios {
+		input, expected := scenario.input, scenario.expected
+		output := shortenedIdentifier(input)
+		if output != expected {
+			t.Fatalf("shortenedIdentifier(%s) = %s, expected %s", input, output, expected)
 		}
 	}
 }
