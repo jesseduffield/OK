@@ -1,6 +1,6 @@
 # _OK?_
 
-_Try it out on the [playground](http://www.okquestionmark.org/)_
+_Try it out on the [playground](https://www.okquestionmark.org/)_
 
 ## Programming Is Simple Again
 
