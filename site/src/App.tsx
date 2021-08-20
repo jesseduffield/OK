@@ -19,7 +19,6 @@ const run = async (text: string) => {
       `${config.serverUrl}/run`,
       requestOptions as any
     );
-    console.log(response);
     return await response.text();
   } catch (error) {
     alert(error);
@@ -39,7 +38,6 @@ const App = () => {
     setOutput('Running...');
     setRunComplete(false);
     const output = await run(value);
-    console.log(output);
     setOutput(output);
     setRunComplete(true);
   };
