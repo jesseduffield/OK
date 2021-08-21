@@ -11,6 +11,8 @@ import (
 
 type Evaluator struct {
 	out io.Writer
+
+	location string
 }
 
 func New(out io.Writer) *Evaluator {
@@ -18,6 +20,25 @@ func New(out io.Writer) *Evaluator {
 }
 
 func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
+	// cloning this so that the location isn't affected by trying to evaluate
+	// nodes further down. For example, if I'm evaluating an infix expression,
+	// I need to call Eval on the left and right side, but I don't want that to
+	// affect my location if I'm reporting an error for the infix expression as
+	// a whole
+	newEvaluator := &Evaluator{out: e.out}
+
+	if node != nil {
+		newEvaluator.location = fmt.Sprintf(
+			"%s (%s)",
+			node.GetToken().Location(),
+			node.GetToken().Literal,
+		)
+	}
+
+	return newEvaluator.evalAux(node, env)
+}
+
+func (e *Evaluator) evalAux(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 
 	// Statements
@@ -183,7 +204,10 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 	return nil
 }
 
-func (e *Evaluator) evalCommentStatement(node *ast.CommentStatement, env *object.Environment) object.Object {
+func (e *Evaluator) evalCommentStatement(
+	node *ast.CommentStatement,
+	env *object.Environment,
+) object.Object {
 	acknowledgePrefix := "I acknowledge that "
 	if strings.HasPrefix(node.Text, acknowledgePrefix) {
 		text := strings.TrimPrefix(node.Text, acknowledgePrefix)
@@ -200,41 +224,58 @@ func (e *Evaluator) evalLazyExpression(node *ast.LazyExpression) object.Object {
 }
 
 // this is only for when used as an expression
-func (e *Evaluator) evalStructMemberAccess(node *ast.StructMemberAccessExpression, env *object.Environment) object.Object {
+func (e *Evaluator) evalStructMemberAccess(
+	node *ast.StructMemberAccessExpression,
+	env *object.Environment,
+) object.Object {
 	left := e.Eval(node.Left, env)
 	structInstance, ok := left.(*object.StructInstance)
 	if !ok {
-		return object.NewError(fmt.Sprintf("`%s` is not a nac", node.Left.String()))
+		return e.newError(fmt.Sprintf("`%s` is not a nac", node.Left.String()))
 	}
 
 	if structInstance.IsField(node.MemberName) {
-		if !structInstance.IsPublicField(node.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
-			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", node.MemberName, structInstance.Struct.Name))
+		if !structInstance.IsPublicField(node.MemberName) &&
+			!env.IsCurrentStructInstance(structInstance) &&
+			!env.AllowsPrivateAccess(structInstance.Struct) {
+			return e.newError(
+				fmt.Sprintf(
+					"`%s` is a private field on nac %s",
+					node.MemberName,
+					structInstance.Struct.Name,
+				),
+			)
 		}
 		return structInstance.GetFieldValue(node.MemberName)
 	} else if structInstance.IsMethod(node.MemberName) {
 		if !structInstance.IsPublicMethod(node.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
-			return object.NewError(fmt.Sprintf("`%s` is a private method on nac %s", node.MemberName, structInstance.Struct.Name))
+			return e.newError(fmt.Sprintf("`%s` is a private method on nac %s", node.MemberName, structInstance.Struct.Name))
 		}
 		return structInstance.GetMethod(node.MemberName)
 	} else {
-		return object.NewError(fmt.Sprintf("undefined field for nac %s: %s", structInstance.Struct.Name, node.MemberName))
+		return e.newError(fmt.Sprintf("undefined field for nac %s: %s", structInstance.Struct.Name, node.MemberName))
 	}
 }
 
 // TODO: support referring to global variables from within a struct
-func (e *Evaluator) evalStructDefinition(structDef *ast.Struct, env *object.Environment) object.Object {
+func (e *Evaluator) evalStructDefinition(
+	structDef *ast.Struct,
+	env *object.Environment,
+) object.Object {
 	env.SetStruct(structDef)
 	return object.NULL
 }
 
-func (e *Evaluator) evalStructInstantiation(node *ast.StructInstantiation, env *object.Environment) object.Object {
+func (e *Evaluator) evalStructInstantiation(
+	node *ast.StructInstantiation,
+	env *object.Environment,
+) object.Object {
 	instance := &object.StructInstance{}
 	instance.Fields = make(map[string]object.Object)
 	// need to find the struct in our env
 	tmp, ok := env.GetStruct(node.StructName)
 	if !ok {
-		return object.NewError(fmt.Sprintf("undefined nac %s", node.StructName))
+		return e.newError(fmt.Sprintf("undefined nac %s", node.StructName))
 	}
 
 	instance.Struct = tmp
@@ -278,7 +319,10 @@ func (e *Evaluator) evalProgram(program *ast.Program, env *object.Environment) o
 	return result
 }
 
-func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
+func (e *Evaluator) evalBlockStatement(
+	block *ast.BlockStatement,
+	env *object.Environment,
+) object.Object {
 	var result object.Object
 
 	for _, statement := range block.Statements {
@@ -302,7 +346,11 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return object.FALSE
 }
 
-func (e *Evaluator) evalPrefixExpression(operator string, rightNode ast.Node, env *object.Environment) object.Object {
+func (e *Evaluator) evalPrefixExpression(
+	operator string,
+	rightNode ast.Node,
+	env *object.Environment,
+) object.Object {
 	switch operator {
 	case "!":
 		right := e.Eval(rightNode, env)
@@ -319,7 +367,7 @@ func (e *Evaluator) evalPrefixExpression(operator string, rightNode ast.Node, en
 	case "lazy":
 		return &object.LazyObject{Right: rightNode}
 	default:
-		return object.NewError("unknown operator: %s for %s", operator, rightNode.String())
+		return e.newError("unknown operator: %s for %s", operator, rightNode.String())
 	}
 }
 
@@ -338,7 +386,7 @@ func (e *Evaluator) evalBangOperatorExpression(right object.Object) object.Objec
 
 func (e *Evaluator) evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJ {
-		return object.NewError("unknown operator: -%s", right.Type())
+		return e.newError("unknown operator: -%s", right.Type())
 	}
 
 	value := right.(*object.Integer).Value
@@ -362,15 +410,19 @@ func (e *Evaluator) evalInfixExpression(
 		// this is allowed internally but illegal in the lexer
 		return nativeBoolToBooleanObject(left == right)
 	case left.Type() != right.Type():
-		return object.NewError("type mismatch: %s %s %s",
+		return e.newError("type mismatch: %s %s %s",
 			left.Type(), operator, right.Type())
 	default:
-		return object.NewError("unknown operator: %s %s %s",
+		return e.newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
 }
 
-func (e *Evaluator) evalAssignmentExpression(left ast.Expression, right ast.Expression, env *object.Environment) object.Object {
+func (e *Evaluator) evalAssignmentExpression(
+	left ast.Expression,
+	right ast.Expression,
+	env *object.Environment,
+) object.Object {
 	val := e.Eval(right, env)
 	if isError(val) {
 		return val
@@ -378,7 +430,11 @@ func (e *Evaluator) evalAssignmentExpression(left ast.Expression, right ast.Expr
 
 	switch v := left.(type) {
 	case *ast.Identifier:
-		return env.Assign(v.Value, val)
+		obj, err := env.Assign(v.Value, val)
+		if err != nil {
+			return e.newError(err.Error())
+		}
+		return obj
 	case *ast.IndexExpression:
 		// I can just evaluate the left entirely and that will leave me with an object
 		key := e.Eval(v.Index, env)
@@ -394,26 +450,26 @@ func (e *Evaluator) evalAssignmentExpression(left ast.Expression, right ast.Expr
 		case *object.Array:
 			indexVal, ok := key.(*object.Integer)
 			if !ok {
-				return object.NewError("Index must be an integer")
+				return e.newError("Index must be an integer")
 			}
 			if indexVal.Value < 0 {
-				return object.NewError("Index must be positive")
+				return e.newError("Index must be positive")
 			}
 			if int(indexVal.Value) > len(l.Elements)-1 {
-				return object.NewError(fmt.Sprintf("Index %d is out of bounds (array length %d)", indexVal.Value, len(l.Elements)))
+				return e.newError(fmt.Sprintf("Index %d is out of bounds (array length %d)", indexVal.Value, len(l.Elements)))
 			}
 			l.Elements[indexVal.Value] = val
 		case *object.Hash:
 			hashKey, ok := key.(object.Hashable)
 			if !ok {
-				return object.NewError("Unusable as hash key: %s", key.Type())
+				return e.newError("Unusable as hash key: %s", key.Type())
 			}
 
 			l.Pairs[hashKey.HashKey()] = object.HashPair{Key: key, Value: val}
 		case *object.Null:
-			return object.NewError("Attempted index of NULL object")
+			return e.newError("Attempted index of NULL object")
 		default:
-			return object.NewError(fmt.Sprintf("`%s` is neither a hash nor array so you cannot index into it", v.Left.String()))
+			return e.newError(fmt.Sprintf("`%s` is neither a hash nor array so you cannot index into it", v.Left.String()))
 		}
 	case *ast.StructMemberAccessExpression:
 		leftVal := e.Eval(v.Left, env)
@@ -423,20 +479,20 @@ func (e *Evaluator) evalAssignmentExpression(left ast.Expression, right ast.Expr
 
 		structInstance, ok := leftVal.(*object.StructInstance)
 		if !ok {
-			return object.NewError(fmt.Sprintf("`%s` is not a nac instance", v.Left.String()))
+			return e.newError(fmt.Sprintf("`%s` is not a nac instance", v.Left.String()))
 		}
 
 		if structInstance.IsMethod(v.MemberName) {
-			return object.NewError(fmt.Sprintf("`%s` is a method, not a field, on nac %s. You cannot reassign it", v.MemberName, structInstance.Struct.Name))
+			return e.newError(fmt.Sprintf("`%s` is a method, not a field, on nac %s. You cannot reassign it", v.MemberName, structInstance.Struct.Name))
 		}
 		if !structInstance.IsPublicField(v.MemberName) && !env.IsCurrentStructInstance(structInstance) && !env.AllowsPrivateAccess(structInstance.Struct) {
-			return object.NewError(fmt.Sprintf("`%s` is a private field on nac %s", v.MemberName, structInstance.Struct.Name))
+			return e.newError(fmt.Sprintf("`%s` is a private field on nac %s", v.MemberName, structInstance.Struct.Name))
 		}
 
 		structInstance.SetFieldValue(v.MemberName, val)
 
 	default:
-		return object.NewError("LHS must be an identifier or index expression")
+		return e.newError("LHS must be an identifier or index expression")
 	}
 
 	return val
@@ -461,7 +517,7 @@ func (e *Evaluator) evalStringInfixExpression(
 		// this is allowed internally but illegal in the lexer
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	default:
-		return object.NewError("unknown operator: %s %s %s",
+		return e.newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
 }
@@ -488,9 +544,14 @@ func (e *Evaluator) evalIntegerInfixExpression(
 		// this is allowed internally but illegal in the lexer
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	default:
-		return object.NewError("unknown operator: %s %s %s",
+		return e.newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
+}
+
+func (e *Evaluator) newError(format string, a ...interface{}) *object.Error {
+	str := fmt.Sprintf(format, a...)
+	return object.NewError(fmt.Sprintf("%s: %s", e.location, str))
 }
 
 func (e *Evaluator) evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
@@ -508,7 +569,10 @@ func (e *Evaluator) evalIfExpression(ie *ast.IfExpression, env *object.Environme
 	}
 }
 
-func (e *Evaluator) evalSwitchExpression(se *ast.SwitchExpression, env *object.Environment) object.Object {
+func (e *Evaluator) evalSwitchExpression(
+	se *ast.SwitchExpression,
+	env *object.Environment,
+) object.Object {
 	subject := e.Eval(se.Subject, env)
 	if isError(subject) {
 		return subject
@@ -517,7 +581,7 @@ func (e *Evaluator) evalSwitchExpression(se *ast.SwitchExpression, env *object.E
 	for _, c := range se.Cases {
 		value := e.Eval(c.Value, env)
 		if value.Type() != subject.Type() {
-			return object.NewError("mismatched types in switch statement: %s %s",
+			return e.newError("mismatched types in switch statement: %s %s",
 				subject.Type(), value.Type())
 		}
 		test := e.evalInfixExpression("==", subject, value)
@@ -571,7 +635,7 @@ func (e *Evaluator) evalIdentifier(
 		return builtin
 	}
 
-	return object.NewError("identifier not found: " + node.Value)
+	return e.newError("identifier not found: " + node.Value)
 }
 
 func (e *Evaluator) applyUserFunction(fn *object.Function, args []object.Object) object.Object {
@@ -580,7 +644,11 @@ func (e *Evaluator) applyUserFunction(fn *object.Function, args []object.Object)
 	return unwrapReturnValue(evaluated)
 }
 
-func (e *Evaluator) applyFunction(fn object.Object, args []object.Object, env *object.Environment) object.Object {
+func (e *Evaluator) applyFunction(
+	fn object.Object,
+	args []object.Object,
+	env *object.Environment,
+) object.Object {
 	switch fn := fn.(type) {
 
 	case *object.Function:
@@ -600,11 +668,14 @@ func (e *Evaluator) applyFunction(fn object.Object, args []object.Object, env *o
 		return fn.Fn(args...)
 
 	default:
-		return object.NewError("not a function: %s", fn.Type())
+		return e.newError("not a function: %s", fn.Type())
 	}
 }
 
-func (e *Evaluator) handleEvolve(instance *object.StructInstance, env *object.Environment) object.Object {
+func (e *Evaluator) handleEvolve(
+	instance *object.StructInstance,
+	env *object.Environment,
+) object.Object {
 	if instance.IsMethod("evolve") {
 		evolveMethod := instance.GetMethod("evolve").(*object.Method)
 		newEnv := e.createMethodEnv(evolveMethod, []object.Object{}, env)
@@ -613,7 +684,11 @@ func (e *Evaluator) handleEvolve(instance *object.StructInstance, env *object.En
 		if other.Type() != object.NULL_OBJ {
 			new, ok := other.(*object.StructInstance)
 			if !ok {
-				return object.NewError("evolve method must return NO! or a nac instance, returned %s: %s", other.Type(), other.Inspect())
+				return e.newError(
+					"evolve method must return NO! or a nac instance, returned %s: %s",
+					other.Type(),
+					other.Inspect(),
+				)
 			}
 			instance.EvolveInto(new)
 		}
@@ -676,7 +751,7 @@ func (e *Evaluator) evalIndexExpression(left, index object.Object) object.Object
 	case left.Type() == object.HASH_OBJ:
 		return e.evalHashIndexExpression(left, index)
 	default:
-		return object.NewError("index operator not supported: %s", left.Type())
+		return e.newError("index operator not supported: %s", left.Type())
 	}
 }
 
@@ -706,7 +781,7 @@ func (e *Evaluator) evalHashLiteral(
 
 		hashKey, ok := key.(object.Hashable)
 		if !ok {
-			return object.NewError("unusable as hash key: %s", key.Type())
+			return e.newError("unusable as hash key: %s", key.Type())
 		}
 
 		value := e.Eval(valueNode, env)
@@ -726,7 +801,7 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 
 	key, ok := index.(object.Hashable)
 	if !ok {
-		return object.NewError("unusable as hash key: %s", index.Type())
+		return e.newError("unusable as hash key: %s", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]

@@ -14,7 +14,7 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"len": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 1 {
-					return object.NewError("wrong number of arguments. got=%d, want=1",
+					return e.newError("wrong number of arguments. got=%d, want=1",
 						len(args))
 				}
 
@@ -24,7 +24,7 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 				case *object.String:
 					return &object.Integer{Value: int64(len(arg.Value))}
 				default:
-					return object.NewError("argument to `len` not supported, got %s",
+					return e.newError("argument to `len` not supported, got %s",
 						args[0].Type())
 				}
 			},
@@ -32,11 +32,11 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"first": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 1 {
-					return object.NewError("wrong number of arguments. got=%d, want=1",
+					return e.newError("wrong number of arguments. got=%d, want=1",
 						len(args))
 				}
 				if args[0].Type() != object.ARRAY_OBJ {
-					return object.NewError("argument to `first` must be ARRAY, got %s",
+					return e.newError("argument to `first` must be ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -51,11 +51,11 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"last": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 1 {
-					return object.NewError("wrong number of arguments. got=%d, want=1",
+					return e.newError("wrong number of arguments. got=%d, want=1",
 						len(args))
 				}
 				if args[0].Type() != object.ARRAY_OBJ {
-					return object.NewError("argument to `last` must be ARRAY, got %s",
+					return e.newError("argument to `last` must be ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -71,11 +71,11 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"rest": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 1 {
-					return object.NewError("wrong number of arguments. got=%d, want=1",
+					return e.newError("wrong number of arguments. got=%d, want=1",
 						len(args))
 				}
 				if args[0].Type() != object.ARRAY_OBJ {
-					return object.NewError("argument to `rest` must be ARRAY, got %s",
+					return e.newError("argument to `rest` must be ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -93,11 +93,11 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"push": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 2 {
-					return object.NewError("wrong number of arguments. got=%d, want=2",
+					return e.newError("wrong number of arguments. got=%d, want=2",
 						len(args))
 				}
 				if args[0].Type() != object.ARRAY_OBJ {
-					return object.NewError("argument to `push` must be ARRAY, got %s",
+					return e.newError("argument to `push` must be ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -128,10 +128,13 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"sleep": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 1 {
-					return object.NewError("wrong number of arguments. got=%d, want=1", len(args))
+					return e.newError("wrong number of arguments. got=%d, want=1", len(args))
 				}
 				if args[0].Type() != object.INTEGER_OBJ {
-					return object.NewError("argument to `sleep` must be INTEGER, got %s", args[0].Type())
+					return e.newError(
+						"argument to `sleep` must be INTEGER, got %s",
+						args[0].Type(),
+					)
 				}
 
 				time.Sleep(time.Duration(args[0].(*object.Integer).Value) * time.Second)
@@ -142,23 +145,32 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 		"map": {
 			Fn: func(args ...object.Object) object.Object {
 				if len(args) != 2 {
-					return object.NewError("wrong number of arguments. got=%d, want=2", len(args))
+					return e.newError("wrong number of arguments. got=%d, want=2", len(args))
 				}
 
 				arr := args[0]
 				if arr.Type() != object.ARRAY_OBJ {
-					return object.NewError("First argument to `map` must be ARRAY, got %s", arr.Type())
+					return e.newError(
+						"First argument to `map` must be ARRAY, got %s",
+						arr.Type(),
+					)
 				}
 
 				fn := args[1]
 				if fn.Type() != object.FUNCTION_OBJ {
-					return object.NewError("Second argument to `map` must be FUNCTION, got %s", fn.Type())
+					return e.newError(
+						"Second argument to `map` must be FUNCTION, got %s",
+						fn.Type(),
+					)
 				}
 
 				arrObj := arr.(*object.Array)
 				fnObj := fn.(*object.Function)
 				if len(fnObj.Parameters) > 2 || len(fnObj.Parameters) < 1 {
-					return object.NewError("Function must have 1 or 2 parameters, got %d", len(fnObj.Parameters))
+					return e.newError(
+						"Function must have 1 or 2 parameters, got %d",
+						len(fnObj.Parameters),
+					)
 				}
 
 				result := &object.Array{Elements: make([]object.Object, len(arrObj.Elements))}
@@ -169,7 +181,10 @@ func (e *Evaluator) getBuiltins(out io.Writer) map[string]*object.Builtin {
 					i := i
 					go func() {
 						if len(fnObj.Parameters) == 1 {
-							result.Elements[i] = e.applyUserFunction(fnObj, []object.Object{el})
+							result.Elements[i] = e.applyUserFunction(
+								fnObj,
+								[]object.Object{el},
+							)
 						} else {
 							result.Elements[i] = e.applyUserFunction(fnObj, []object.Object{el, &object.Integer{Value: int64(i)}})
 						}

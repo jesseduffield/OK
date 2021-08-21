@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/jesseduffield/OK/ok/lexer"
@@ -64,14 +65,16 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	return true
 }
 
+// only checks for error inclusion: doesn't check against the entire error
 func testErrorObject(t *testing.T, obj object.Object, expected string) bool {
 	result, ok := obj.(*object.Error)
 	if !ok {
 		t.Errorf("object is not Error. got=%T (%+v)", obj, obj)
 		return false
 	}
-	if result.Message != expected {
-		t.Errorf("object has wrong value. got=%s, want=%s",
+
+	if !strings.Contains(result.Message, expected) {
+		t.Errorf("object has wrong value. got=%s, want (included)=%s",
 			result.Message, expected)
 		return false
 	}
@@ -277,9 +280,9 @@ return 1;
 			continue
 		}
 
-		if errObj.Message != tt.expectedMessage {
-			t.Errorf("wrong error message. expected=%q, got=%q",
-				tt.expectedMessage, errObj.Message)
+		if !strings.Contains(errObj.Message, tt.expectedMessage) {
+			t.Errorf("object has wrong value. got=%s, want (included)=%s",
+				errObj.Message, tt.expectedMessage)
 		}
 	}
 }
@@ -408,8 +411,8 @@ func TestBuiltinFunctions(t *testing.T) {
 					evaluated, evaluated)
 				continue
 			}
-			if errObj.Message != expected {
-				t.Errorf("wrong error message. expected=%q, got=%q",
+			if !strings.Contains(errObj.Message, expected) {
+				t.Errorf("wrong error message. expected (includes)=%q, got=%q",
 					expected, errObj.Message)
 			}
 		}
@@ -1018,4 +1021,36 @@ func TestAssignment(t *testing.T) {
 			testNullObject(t, evaluated)
 		}
 	}
+}
+
+func TestEvalErrors(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"x = 5", "line 1, column 3 (=): x has not been declared"},
+		{"1 >= 5;\nx=5", "line 2, column 2 (=): x has not been declared"},
+		{"switch x { case true: 1 }", "line 1, column 8 (x): identifier not found: x"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(t, tt.input)
+		testExactErrorObject(t, evaluated, tt.expected)
+	}
+}
+
+func testExactErrorObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.Error)
+	if !ok {
+		t.Errorf("object is not Error. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Message != expected {
+		t.Errorf("object has wrong value. got=\n%s\n, want=\n%s",
+			result.Message, expected)
+		return false
+	}
+
+	return true
 }
