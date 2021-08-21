@@ -66,9 +66,6 @@ const (
 	PUBLIC = "PUBLIC"
 	NEW    = "NEW"
 	PERIOD = "PERIOD"
-
-	// loops
-	LOOP = "LOOP"
 )
 
 var keywords = map[string]TokenType{

@@ -1,11 +1,6 @@
 @import 'codemirror/lib/codemirror.css';
-/* @import 'codemirror/theme/material.css'; */
 
 /* Most of this is taken from the Go playground site. It's a parody so I'm pretty sure this constitutes fair use */
-
-.App {
-
-}
 
 .OK {
   font-style:italic;
@@ -78,9 +73,9 @@
 .CodeMirror {
   height: 670px;
   font-family: Menlo, monospace;
-  font-size: 11pt;
+  font-size: 14pt;
   font-weight: 500;
-  background:#dffcfc;
+  background:#fff7f7;
 }
 
 .ShareInput {
@@ -92,4 +87,96 @@
   overflow-x: scroll;
   white-space: nowrap;
   padding-top: 4px;
+}
+
+.cm-s-mdn-like.CodeMirror {
+  background-image: none;
+}
+
+.cm-s-mdn-like .CodeMirror-gutters {
+  border-left: 6px;
+}
+
+.cm-s-mdn-like.CodeMirror {
+  background: #fff7f7;
+}
+
+
+.Modal-outer {
+  display: table;
+  position: absolute;
+  z-index:10;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+
+}
+
+.Modal-middle {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.Modal-inner {
+  margin-left: auto;
+  margin-right: auto;
+  width: 400px;
+  height: 500px;
+  background-color:white;
+  border: 3px solid #ff0000;
+  padding: 20px;
+  animation: blink-border 1s step-start infinite;
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.Modal-heading {
+  color: red;
+}
+
+.Modal-heading{
+  animation: blinker 1s step-start infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes blink-border {
+  0% {
+    border: 3px solid #ff0000;
+  }
+  50% {
+    border: 3px solid black;
+  }
+}
+
+.italic {
+  font-style:italic
+}
+
+
+.enable-button  {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  /*optional*/
+  font-family: arial, sans-serif;
+  /*input has OS specific font-family*/
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.enable-button.disabled {
+  color: grey;
+  cursor:default;
+}
+
+.Modal-buttons >*+*{
+  margin-left:10px;
 }
