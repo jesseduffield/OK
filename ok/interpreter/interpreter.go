@@ -28,7 +28,11 @@ func Interpret(r io.Reader, w io.Writer) {
 	}
 
 	env := object.NewEnvironment()
-	evaluator.New(w).Eval(program, env)
+	output := evaluator.New(w).Eval(program, env)
+	if v, ok := output.(*object.Error); ok {
+		io.WriteString(w, v.Inspect())
+		io.WriteString(w, "\n")
+	}
 }
 
 func printParserErrors(out io.Writer, errors []string) {
