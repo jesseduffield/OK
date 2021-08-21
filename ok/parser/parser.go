@@ -124,6 +124,8 @@ func (p *Parser) validateIdentifier(identifier string) {
 			"Identifier must be at most eight characters long; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 			suggested,
 		))
+
+		return
 	}
 
 	if strings.ToLower(identifier) != identifier {
@@ -131,6 +133,8 @@ func (p *Parser) validateIdentifier(identifier string) {
 			"Identifier must not contain uppercase characters; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 			strings.ToLower(identifier),
 		))
+
+		return
 	}
 
 	if strings.Contains(identifier, "_") {
@@ -138,6 +142,8 @@ func (p *Parser) validateIdentifier(identifier string) {
 			"Identifier must not contain underscores; consider using '%s' instead.\nSee https://github.com/jesseduffield/ok#familiarity-admits-brevity",
 			removeUnderscores(identifier),
 		))
+
+		return
 	}
 }
 

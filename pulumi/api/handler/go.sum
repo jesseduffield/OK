@@ -11,6 +11,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/jesseduffield/OK v0.0.0-20210819112920-43aab17ce431 h1:2iNhSKWzBD5ROozStCmBk1osV5i9Fb3qNDoQD/cs9LU=
 github.com/jesseduffield/OK/ok v0.0.0-20210819112920-43aab17ce431 h1:lrMFt2N5EJgu8WnmsntGlUhW9qMF3UbRw4JYpEtmdTw=
 github.com/jesseduffield/OK/ok v0.0.0-20210819112920-43aab17ce431/go.mod h1:ROd5xn9cDRR3Lvcau+jQswiOVCiZndiK74nSwtbPRt8=
+github.com/jesseduffield/OK/ok v0.0.0-20210821025011-1f0e002c175a h1:8MifHb1iVb96QLt23UBcZXpNbUKACZvhdJ38JcGagzY=
+github.com/jesseduffield/OK/ok v0.0.0-20210821025011-1f0e002c175a/go.mod h1:XjwxEHq6X+10hpg7HmeCGD5EAVeBrI6WjSx4prx7Jt0=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
