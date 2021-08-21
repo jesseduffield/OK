@@ -386,6 +386,10 @@ Jack says:
 
 ### How To Get Started
 
+To play around with the language in your browser, you can go to the [playground](https://www.okquestionmark.org/)
+
+To use the language locally, follow the following steps:
+
 1. `git clone` the repo.
 2. within the `ok` directory run `go install`.
 3. Run `ok` without any arguments to bring up the REPL, or you can run an _OK?_ file with `ok test.ok`.
