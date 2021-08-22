@@ -4,7 +4,7 @@ _Try it out on the [playground](https://www.okquestionmark.org/)_
 
 <p align="center">
   <img src="assets/quentyn.png" />
-  <p align="center"><i>Quentyn Questionmark: OK?'s mascot.</i></p>
+  <p align="center"><i>OK?'s mascot: Quentyn Questionmark.</i></p>
 </p>
 
 
