@@ -2,6 +2,12 @@
 
 _Try it out on the [playground](https://www.okquestionmark.org/)_
 
+<p align="center">
+  <img src="assets/quentyn.png" />
+  <p align="center"><i>Quentyn Questionmark: OK?'s mascot.</i></p>
+</p>
+
+
 ## Programming Is Simple Again
 
 _OK?_ is a modern, dynamically typed programming language with a vision for the future.
