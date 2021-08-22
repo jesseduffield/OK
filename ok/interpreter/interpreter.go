@@ -38,7 +38,7 @@ func Interpret(r io.Reader, w io.Writer) {
 	quentynMessage := quentyn.GetQuentynMessage()
 	if quentynMessage != "" {
 		io.WriteString(w, "\n")
-		io.WriteString(w, quentyn.GetQuentynMessage())
+		io.WriteString(w, quentynMessage)
 	}
 }
 
