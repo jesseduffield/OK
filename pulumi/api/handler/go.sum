@@ -7,8 +7,9 @@ github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsr
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/jesseduffield/OK/ok v0.0.0-20210821035552-bfdd834f96d6 h1:MwNGPuQ6LJvK3TLte+Ep3qY75lPN0pZps4m/RIPECMs=
-github.com/jesseduffield/OK/ok v0.0.0-20210821035552-bfdd834f96d6/go.mod h1:XjwxEHq6X+10hpg7HmeCGD5EAVeBrI6WjSx4prx7Jt0=
+github.com/jesseduffield/OK/ok v0.0.0-20210822082148-caf52f5fde62 h1:6ZmXGTLS56D/yVZtJ+SDUs9yQ0oyt1hi7TmH17OZ0ts=
+github.com/jesseduffield/OK/ok v0.0.0-20210822082148-caf52f5fde62/go.mod h1:ChUYGvrPJBy3vOLR0y0uBl6M0ywHfv/K7tlGVJBJgdI=
+github.com/jesseduffield/ok v0.0.0-20210821035825-9b21efc7a034/go.mod h1:kyNJsiHpgSppALRc1wpdHb6f6OeYfyFC2Lpt+nKWnNE=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=

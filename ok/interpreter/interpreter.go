@@ -35,8 +35,11 @@ func Interpret(r io.Reader, w io.Writer) {
 		io.WriteString(w, "\n")
 	}
 
-	io.WriteString(w, "\n")
-	io.WriteString(w, quentyn.GetQuentynMessage())
+	quentynMessage := quentyn.GetQuentynMessage()
+	if quentynMessage != "" {
+		io.WriteString(w, "\n")
+		io.WriteString(w, quentyn.GetQuentynMessage())
+	}
 }
 
 func printParserErrors(out io.Writer, errors []string) {

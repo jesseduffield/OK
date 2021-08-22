@@ -22,7 +22,12 @@ var samples = []string{
 }
 
 func GetQuentynMessage() string {
-	return "Quentyn Questionmark says: " + getRandomSample()
+	// one in 5 chance that quentyn says anything
+	if rand.Intn(5) == 0 {
+		return "Quentyn Questionmark says: " + getRandomSample()
+	}
+
+	return ""
 }
 
 func getRandomSample() string {
