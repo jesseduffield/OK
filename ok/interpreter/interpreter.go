@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/OK/ok/lexer"
 	"github.com/jesseduffield/OK/ok/object"
 	"github.com/jesseduffield/OK/ok/parser"
+	"github.com/jesseduffield/OK/ok/quentyn"
 )
 
 func Interpret(r io.Reader, w io.Writer) {
@@ -33,6 +34,9 @@ func Interpret(r io.Reader, w io.Writer) {
 		io.WriteString(w, v.Inspect())
 		io.WriteString(w, "\n")
 	}
+
+	io.WriteString(w, "\n")
+	io.WriteString(w, quentyn.GetQuentynMessage())
 }
 
 func printParserErrors(out io.Writer, errors []string) {
