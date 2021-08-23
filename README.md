@@ -3,7 +3,7 @@
 _Try it out on the [playground](https://www.okquestionmark.org/)_
 
 <p align="center">
-  <img src="assets/quentyn.png" />
+  <img src="assets/quentyn_vectorised.png" />
   <p align="center"><i>OK?'s mascot: Quentyn Questionmark.</i></p>
 </p>
 
@@ -22,9 +22,9 @@ _OK?_'s mission is to do away with the needless complexity of today's programmin
 - [One Comparison Operator](#one-comparison-operator)
 - [Dead-simple Operator Precedence](#dead-simple-operator-precedence)
 - [Death To Classes](#death-to-classes)
-  * [All Fields Are Private](#all-fields-are-private)
-  * [No Constructors](#no-constructors)
-  * [Evolution Over Composition](#evolution-over-composition)
+  - [All Fields Are Private](#all-fields-are-private)
+  - [No Constructors](#no-constructors)
+  - [Evolution Over Composition](#evolution-over-composition)
 - [Familiarity Admits Brevity](#familiarity-admits-brevity)
 - [Concurrency, Iterated](#concurrency-iterated)
 - [Testimonials](#testimonials)
