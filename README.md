@@ -183,7 +183,7 @@ _OK?_ features a single comparison operator: `>=`
 | In other languages | In _OK?_                                         |
 | ------------------ | ------------------------------------------------ |
 | `a >= b`           | `a >= b`                                         |
-| `a <= b`           | `b >= a)`                                        |
+| `a <= b`           | `b >= a`                                        |
 | `a > b`            | `!(b >= a)`                                      |
 | `a < b`            | `!(a >= b)`                                      |
 | `a == b`           | `let x = a >= b; let y = b >= a; x && y`         |
