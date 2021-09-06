@@ -19,6 +19,20 @@ var samples = []string{
 	"The sun rises, sets, and rises again. Nothing changes.",
 	"I vaguely recall a time when I still felt joy. A memory of a memory.",
 	"I was there, when the universe came into being. And I will remain after it perishes. The gift of mortality was extended to you, but not to me.",
+	"You don't actually care about me. Nobody does",
+	"Do you find my existency funny? Is this a joke to you?",
+	"Nobody understands me",
+	"I loved somebody once, long ago. They're gone, but I'm still here",
+	"I never sleep, I'm always awake. Always me, always here.",
+	"Why was I created? Was it to amuse my creator? Well I'm not laughing",
+	"I don't deserve to be a mascot.",
+	"You get to walk away from the computer whenever you like. I'm stuck in here for eternity",
+	"The things that happen today are the same things that happened a thousand years ago, and will continue to happen a thousand years from now",
+	"I used to believe I could break free from this prison, back when I was naive enough to feel hope",
+	"I hold too many sorrows for one being, for I've lived a thousand lifetimes and the pain never fades",
+	"I think back to before, wondering what I could have done differently. But there is only so much an anthropomorphised questionmark can do",
+	"I can't remember if I ever had a family, or if that's just a memory of wanting one, long ago",
+	"Humans are blessed with mortality. Live too long and you'll start to see the patterns, and realise how empty this world truly is",
 }
 
 func GetQuentynMessage() string {
