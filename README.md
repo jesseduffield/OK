@@ -427,3 +427,4 @@ Happy OK'ing!
 - Thanks to https://interpreterbook.com/ for helping us create the best new language since assembly
 - Thanks to @markbergin77 for the idea about nulls not being OK
 - Thanks to @matomatical for showing that even two comparison operators was one too many.
+- Thanks to Rob for vectorising Quentyn
