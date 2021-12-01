@@ -66,7 +66,7 @@ switch x {
   case true:
     z = z + 2
   case false:
-    x + x = 1;
+    x = x + 1;
     y = y - 1; // <-- ERROR: switch blocks can only contain a single statement
 }
 
