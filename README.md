@@ -72,7 +72,7 @@ switch x {
 
 // VALID:
 let onfalse = fn() {
-  x + x = 1;
+  x = x + 1;
   y = y - 1;
 };
 
