@@ -382,12 +382,13 @@ With the union of concurrency and iteration, the sky is the limit.
 let every = fn(arr, check) {
   let passed = true;
   map(arr, fn(e) {
-    switch check(e) { case true: passed = false; } }
+    switch check(e) { case false: passed = false; } }
   )
   return passed;
 };
 
-result = every([5,2,4,1,3], fn(e) { return e >= 2 }); // false
+result1 = every([5,2,4,1,3], fn(e) { return e >= 2 }); // false
+result2 = every([5,2,4,1,3], fn(e) { return e >= 1 }); // true
 ```
 
 With this speed, your program's going to finish before you've even started writing it.
