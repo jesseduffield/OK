@@ -239,14 +239,14 @@ For extenuating circumstances, you can define a _privacy acknowledgement_ with t
 
 ```go
 notaclass person {
-  pack "I am a stupid piece of shit who should not be doing this"
+  pack "I am a dummy who should not be doing this"
 
   field name
   field email
 }
 
 let p = new person()
-// I acknowledge that I am a stupid piece of shit who should not be doing this
+// I acknowledge that I am a dummy who should not be doing this
 p.name = "Jesse"  // <-- No error
 
 ```
