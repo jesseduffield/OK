@@ -13,7 +13,7 @@ _Watch the [Making-of video](https://www.youtube.com/watch?v=PLGpUsSL0FI&ab_chan
 
 <p align="center">
   <img src="assets/ascii-quentyn.jpg" width="500px"/>
-  <p align="center"><i>¿OK?</i></p>
+  <p align="center"><i>I'm OK, are you OK?</i></p>
 </p>                                
 
 
