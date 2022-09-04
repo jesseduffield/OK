@@ -442,8 +442,16 @@ To play around with the language in your browser, you can go to the [playground]
 To use the language locally, follow the following steps:
 
 1. `git clone` the repo.
-2. within the `ok` directory run `go install`.
+2. Within the `ok` directory run `go install`
 3. Run `ok` without any arguments to bring up the REPL, or you can run an _OK?_ file with `ok test.ok`.
+
+
+Note: 
+Maybe this is the incorrect way to do it, but I also had to add an alias:
+```bash
+alias ok="go run ~/projects/OK/ok/main.go"
+```
+after step 2, to get step 3 to work. -SG
 
 Happy OK'ing!
 
