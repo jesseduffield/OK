@@ -5,8 +5,8 @@ _Try it out on the [playground](https://www.okquestionmark.org/)_
 _Watch the [Making-of video](https://www.youtube.com/watch?v=PLGpUsSL0FI&ab_channel=JesseDuffield)_
 
 <p align="center">
-  <img src="assets/quentyn_vectorised.png" width="500px"/>
-  <p align="center"><i>OK?'s mascot: Quentyn Questionmark.</i></p>
+  <img src="assets/20220904_154920.jpg" width="700px"/>
+  <p align="center"><i>COMPAQ personal Computer BASIC prompt.</i></p>
 </p>
 
 ## Programming Is Simple Again
