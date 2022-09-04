@@ -207,6 +207,24 @@ let equals = fn(a, b) {
 }
 ```
 
+If that seems a bit too complicated, or difficult to remember, here are some "refresher" hotstrings in Autohotkey:
+
+```ahk
+;; ok? ok?sh ok oksh ;;
+
+;; unchanged
+;; a >= b	a >= b
+
+::refresher::a >= b, a <= b, a > b, a < b, a == b, a != b
+
+;; fixer upper ;;
+::a <= b::b >= a
+::a > b::!(b >= a)
+::a < b::!(a >= b)
+::a == b::let x = a >= b; let y = b >= a; x && y
+::a != b::let x = !(a >= b); let y = !(b >= a); x || y
+```
+
 ### Dead-simple Operator Precedence
 
 in _OK?_, `5 + 2 * 3` evaluates to 21, not 11, because addition and multiplication have equal operator precedence. If you want to evaluate your expression in some other order, you simply need to use parentheses: `5 + (2 * 3)`.
