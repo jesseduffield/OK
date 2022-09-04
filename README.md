@@ -122,7 +122,7 @@ let divide = fn(a, b) {
   };
 };
 
-result = divide(5, 0)
+let result = divide(5, 0)
 switch result[1] {
   case "": puts(result[0])
   default: puts(result[1]) // prints "cannot divide by zero"
