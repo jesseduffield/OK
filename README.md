@@ -425,7 +425,7 @@ Dave says:
 
 Joel says:
 
-> I used to find _OK?_'s opinionated syntax constraints coercive. Now I find them liberating. Thinking hard about how to fit a complex variable name into eight characters forces me to write code that future me can easily maintain
+> I used to find _OK?_'s opinionated syntax constraints coercive. Now I find them liberating. Thinking hard about how to fit a complex variable name into eight characters forces me to write code that future me can easily maintain.
 
 Sarah says:
 
