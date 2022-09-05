@@ -218,11 +218,11 @@ If that seems a bit too complicated, or difficult to remember, here are some "re
 ::refresher::a >= b, a <= b, a > b, a < b, a == b, a != b
 
 ;; fixer upper ;;
-::a <= b::b >= a
-::a > b::!(b >= a)
-::a < b::!(a >= b)
-::a == b::let x = a >= b; let y = b >= a; x && y
-::a != b::let x = !(a >= b); let y = !(b >= a); x || y
+:*:a <= b::b >= a
+:*:a > b::!(b >= a)
+:*:a < b::!(a >= b)
+:*:a == b::let x = a >= b; let y = b >= a; x && y
+:*:a != b::let x = !(a >= b); let y = !(b >= a); x || y
 ```
 
 ### Dead-simple Operator Precedence
