@@ -170,7 +170,7 @@ switch isactive && enoughcr && notadmin {
 }
 ```
 
-If `p.isactive()` returns `true`, then `p.credits()` and `p.usertype()` will never be called.
+If `p.isactive()` returns `false`, then `p.credits()` and `p.usertype()` will never be called.
 
 With this feature you get the best of both worlds: clean, readable code, without sacrificing performance.
 
