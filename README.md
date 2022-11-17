@@ -382,7 +382,7 @@ With the union of concurrency and iteration, the sky is the limit.
 let every = fn(arr, check) {
   let passed = true;
   map(arr, fn(e) {
-    switch check(e) { case true: passed = false; } }
+    switch check(e) { case false: passed = false; } }
   )
   return passed;
 };
