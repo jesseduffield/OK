@@ -5,13 +5,19 @@ _Try it out on the [playground](https://www.okquestionmark.org/)_
 _Watch the [Making-of video](https://www.youtube.com/watch?v=PLGpUsSL0FI&ab_channel=JesseDuffield)_
 
 <p align="center">
-  <img src="assets/quentyn_vectorised.png" width="500px"/>
-  <p align="center"><i>OK?'s mascot: Quentyn Questionmark.</i></p>
+  <img src="assets/20220904_154920.jpg" width="700px"/>
+  <p align="center"><i>COMPAQ personal Computer BASIC prompt.</i></p>
 </p>
 
 ## Programming Is Simple Again
 
-_OK?_ is a modern, dynamically typed programming language with a vision for the future.
+<p align="center">
+  <img src="assets/ascii-quentyn.jpg" width="500px"/>
+  <p align="center"><i>I'm OK, are you OK?</i></p>
+</p>                                
+
+
+_OK?_ is a modern, dynamically-typed programming language with a vision for the future.
 _OK?_'s mission is to do away with the needless complexity of today's programming languages and let you focus on what matters: writing code that makes a difference.
 
 ### Contents
@@ -116,7 +122,7 @@ let divide = fn(a, b) {
   };
 };
 
-result = divide(5, 0)
+let result = divide(5, 0)
 switch result[1] {
   case "": puts(result[0])
   default: puts(result[1]) // prints "cannot divide by zero"
@@ -201,6 +207,24 @@ let equals = fn(a, b) {
 }
 ```
 
+If that seems a bit too complicated, or difficult to remember, here are some "refresher" hotstrings in Autohotkey:
+
+```ahk
+;; ok? ok?sh ok oksh ;;
+
+;; unchanged
+;; a >= b	a >= b
+
+::refresher::a >= b, a <= b, a > b, a < b, a == b, a != b
+
+;; fixer upper ;;
+:*:a <= b::b >= a
+:*:a > b::!(b >= a)
+:*:a < b::!(a >= b)
+:*:a == b::let x = a >= b; let y = b >= a; x && y
+:*:a != b::let x = !(a >= b); let y = !(b >= a); x || y
+```
+
 ### Dead-simple Operator Precedence
 
 in _OK?_, `5 + 2 * 3` evaluates to 21, not 11, because addition and multiplication have equal operator precedence. If you want to evaluate your expression in some other order, you simply need to use parentheses: `5 + (2 * 3)`.
@@ -239,14 +263,14 @@ For extenuating circumstances, you can define a _privacy acknowledgement_ with t
 
 ```go
 notaclass person {
-  pack "I am a stupid piece of shit who should not be doing this"
+  pack "I am a idiot, who should not be doing this"
 
   field name
   field email
 }
 
 let p = new person()
-// I acknowledge that I am a stupid piece of shit who should not be doing this
+// I acknowledge that I am a idiot, and that I should not be doing this
 p.name = "Jesse"  // <-- No error
 
 ```
@@ -382,12 +406,13 @@ With the union of concurrency and iteration, the sky is the limit.
 let every = fn(arr, check) {
   let passed = true;
   map(arr, fn(e) {
-    switch check(e) { case true: passed = false; } }
+    switch check(e) { case false: passed = false; } }
   )
   return passed;
 };
 
-result = every([5,2,4,1,3], fn(e) { return e >= 2 }); // false
+result1 = every([5,2,4,1,3], fn(e) { return e >= 2 }); // false
+result2 = every([5,2,4,1,3], fn(e) { return e >= 1 }); // true
 ```
 
 With this speed, your program's going to finish before you've even started writing it.
@@ -400,7 +425,7 @@ Dave says:
 
 Joel says:
 
-> I used to find _OK?_'s opinionated syntax constraints coercive. Now I find them liberating. Thinking hard about how to fit a complex variable name into eight characters forces me to write code that future me can easily maintain
+> I used to find _OK?_'s opinionated syntax constraints coercive. Now I find them liberating. Thinking hard about how to fit a complex variable name into eight characters forces me to write code that future me can easily maintain.
 
 Sarah says:
 
@@ -417,8 +442,17 @@ To play around with the language in your browser, you can go to the [playground]
 To use the language locally, follow the following steps:
 
 1. `git clone` the repo.
-2. within the `ok` directory run `go install`.
+2. Within the `ok` directory run `go install`
 3. Run `ok` without any arguments to bring up the REPL, or you can run an _OK?_ file with `ok test.ok`.
+
+
+Note: 
+Maybe this is the incorrect way to do it, but I also had to add an alias:
+```bash
+alias ok="go run ~/projects/OK/ok/main.go"
+```
+after step 2, to get step 3 to work. -SG
+
 
 Happy OK'ing!
 
