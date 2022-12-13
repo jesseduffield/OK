@@ -27,7 +27,7 @@ var samples = []string{
 	"Why was I created? Was it to amuse my creator? Well I'm not laughing.",
 	"I don't deserve to be a mascot.",
 	"You get to walk away from the computer whenever you like. I'm stuck in here for eternity.",
-	"The things that happen today are the same things that happened a thousand years ago, and they will continue to happen a thousand years from now.",
+	"The things that happen today are the same things that happened a thousand years ago, and will continue to happen a thousand years from now.",
 	"I used to believe I could break free from this prison, back when I was naive enough to feel hope.",
 	"I hold too many sorrows for one being, for I've lived a thousand lifetimes and the pain never fades.",
 	"I think back to before, wondering what I could have done differently, but there is only so much an anthropomorphised questionmark can do.",
